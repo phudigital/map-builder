@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDS Map Builder - Legend Interactive</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #4f46e5;
+            --danger: #ef4444;
+            --success: #10b981;
+            --bg: #f3f4f6;
+            --panel: #ffffff;
+            --border: #e5e7eb;
+            --text: #1f2937;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            height: 100vh;
+        }
+
+        .header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+        }
+
+        .logo { font-size: 18px; font-weight: 700; color: var(--primary); }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--bg); border: 1px solid var(--border); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: #fee2e2; color: var(--danger); }
+
+        .main-content {
+            margin-top: 60px;
+            padding: 20px;
+            overflow-y: auto;
+            height: calc(100vh - 60px);
+        }
+
+        .workspace {
+            background: var(--panel);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .url-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        .url-input-group { display: flex; gap: 10px; margin-top: 10px; }
+        .url-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            font-size: 13px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            outline: none;
+        }
+
+        .map-wrapper {
+            position: relative;
+            display: none;
+            background: #f3f4f6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .map-wrapper.active { display: block; }
+
+        .bds-map-preview {
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .bds-map-preview img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .bds-hotspot {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .bds-hotspot:hover, .bds-hotspot.active { z-index: 20; }
+
+        .bds-hotspot-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+            border: 3px solid white;
+            position: relative;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        /* Effects */
+        @keyframes gentle-pulse {
+            0% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            10%, 30% { transform: scale(1.1); }
+            20%, 40% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Legend interaction effect */
+        @keyframes legend-bounce {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.4); }
+        }
+
+        @keyframes legend-shake {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-50%, -50%) rotate(-10deg); }
+            75% { transform: translate(-50%, -50%) rotate(10deg); }
+        }
+
+        .effect-pulse::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: inherit;
+            opacity: 0.4;
+            animation: gentle-pulse 2s infinite;
+            left: 0; top: 0;
+            z-index: -1;
+        }
+
+        .effect-heartbeat .bds-hotspot-icon { animation: heartbeat 1.5s ease-in-out infinite; }
+        .effect-shake .bds-hotspot-icon { animation: shake 0.5s ease-in-out infinite; }
+        .effect-blink .bds-hotspot-icon { animation: blink 1s ease-in-out infinite; }
+        .effect-bounce .bds-hotspot-icon { animation: bounce 0.8s ease-in-out infinite; }
+        .effect-rotate .bds-hotspot-icon { animation: rotate 3s linear infinite; }
+
+        .bds-hotspot:hover .bds-hotspot-icon {
+            transform: scale(1.2);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            margin-top: 60px;
+            background: var(--panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 60px);
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            background: #f9fafb;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .form-group { margin-bottom: 12px; }
+        .form-label { 
+            display: block; 
+            font-size: 12px; 
+            font-weight: 600; 
+            margin-bottom: 4px; 
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .compact-box {
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .color-swatch {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .color-swatch:hover { transform: scale(1.2); z-index: 10; }
+        .color-swatch.selected { 
+            border-color: #222; 
+            transform: scale(1.1);
+            box-shadow: 0 0 0 2px white, 0 0 0 3px var(--primary);
+        }
+        .color-swatch.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .row-flex {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .icon-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .icon-input {
+            width: 50px;
+            text-align: center;
+            font-size: 16px;
+            padding: 6px;
+        }
+
+        .icon-preview-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .effect-select {
+            width: 120px;
+            font-size: 12px;
+            padding: 6px;
+        }
+
+        .size-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .size-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .size-field label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .size-field input {
+            padding: 6px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .coord-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f3f4f6;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+        .coord-value { 
+            font-family: monospace; 
+            font-size: 16px; 
+            font-weight: bold; 
+            color: var(--primary); 
+            text-align: center; 
+        }
+        .coord-label { 
+            font-size: 11px; 
+            color: var(--text-muted); 
+            text-align: center; 
+            text-transform: uppercase;
+        }
+
+        .points-list { margin-top: 16px; }
+        
+        .point-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .point-item:hover { background: #f3f4f6; border-color: var(--primary); }
+        .point-item.active { background: #eef2ff; border-color: var(--primary); }
+
+        .point-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .point-info { flex: 1; min-width: 0; }
+        .point-title { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .point-meta { font-size: 11px; color: var(--text-muted); }
+
+        .delete-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .delete-btn:hover { background: #fee2e2; color: var(--danger); }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: white;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .export-options {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .code-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+
+        .code-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .code-block {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .code-block.active { display: block; }
+
+        @media (max-width: 768px) {
+            .app-container { grid-template-columns: 1fr; }
+            .sidebar { height: 40vh; }
+            .color-grid { grid-template-columns: repeat(8, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header class="header">
+        <div class="logo">🏢 BDS Map Builder - Legend Zoom</div>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="clearAll()">🗑️ Xóa tất cả</button>
+            <button class="btn btn-success" onclick="openExportModal()">📤 Xuất code</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="workspace">
+            <div class="url-section">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">🌐 URL hình ảnh nền</h3>
+                <div class="url-input-group">
+                    <input type="text" class="url-input" id="imageUrlInput" placeholder="https://example.com/map.jpg">
+                    <button class="btn" style="background: white; color: #667eea;" onclick="loadImageFromUrl()">Tải</button>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; opacity: 0.9;">
+                    Hoặc upload: <input type="file" id="fileInput" accept="image/*" style="font-size: 12px;" onchange="handleFileUpload(event)">
+                </div>
+            </div>
+
+            <div class="map-wrapper" id="mapWrapper">
+                <div style="padding: 10px; background: #f9fafb; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 12px; color: var(--text-muted);">Click thêm điểm • Kéo thả di chuyển</span>
+                    <span style="font-size: 12px; color: var(--primary); font-weight: 600;" id="mapDimensions"></span>
+                </div>
+                <div style="padding: 16px; text-align: center;">
+                    <div class="bds-map-preview" id="mapContainer">
+                        <img id="mapImage" src="" alt="Map">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3 style="font-size: 14px;">🎨 Thông tin điểm</h3>
+        </div>
+        
+        <div class="sidebar-content">
+            <div class="empty-state" id="emptyState">
+                <div style="font-size: 40px; margin-bottom: 8px;">📍</div>
+                <p>Chưa chọn điểm nào</p>
+                <p style="font-size: 12px; margin-top: 4px;">Click vào bản đồ để thêm</p>
+            </div>
+
+            <form id="pointForm" style="display: none;">
+                <div class="coord-display">
+                    <div>
+                        <div class="coord-value" id="posTop">0%</div>
+                        <div class="coord-label">Top</div>
+                    </div>
+                    <div>
+                        <div class="coord-value" id="posLeft">0%</div>
+                        <div class="coord-label">Left</div>
+                    </div>
+                </div>
+
+                <div class="compact-box">
+                    <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">🎨 Màu & Icon</div>
+                    
+                    <div class="color-grid" id="colorGrid"></div>
+                    <input type="hidden" id="inputColor" value="#4f46e5">
+
+                    <div class="row-flex" style="margin-top: 10px;">
+                        <div class="icon-group">
+                            <input type="text" class="form-input icon-input" id="inputIcon" maxlength="2" placeholder="🏠" value="🏠">
+                            <div class="icon-preview-small" id="iconPreview" style="background: #4f46e5;">🏠</div>
+                        </div>
+                        
+                        <select class="form-select effect-select" id="inputEffect">
+                            <option value="pulse">✨ Lan tỏa</option>
+                            <option value="heartbeat">💓 Nhịp tim</option>
+                            <option value="shake">📳 Rung</option>
+                            <option value="blink">💡 Nháy</option>
+                            <option value="bounce">⬆️ Nảy</option>
+                            <option value="rotate">🔄 Xoay</option>
+                            <option value="none">⛔ Không</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Icon Size Settings -->
+                <div class="compact-box">
+                    <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px;">📐 Kích thước icon (px)</div>
+                    <div class="size-input-group">
+                        <div class="size-field">
+                            <label>Desktop (>768px)</label>
+                            <input type="number" id="iconSizeDesktop" value="40" min="20" max="100">
+                        </div>
+                        <div class="size-field">
+                            <label>Mobile (≤768px)</label>
+                            <input type="number" id="iconSizeMobile" value="32" min="20" max="100">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tên khu vực</label>
+                    <input type="text" class="form-input" id="inputTitle" placeholder="VD: Lô A1...">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Diện tích</label>
+                    <input type="text" class="form-input" id="inputArea" placeholder="VD: 100m²...">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Giá</label>
+                    <input type="text" class="form-input" id="inputPrice" placeholder="VD: 2.5 tỷ...">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mô tả</label>
+                    <textarea class="form-textarea" id="inputDetails" placeholder="Thông tin thêm..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                    <button type="button" class="btn btn-danger" style="flex: 1;" onclick="deleteCurrentPoint()">🗑️ Xóa</button>
+                    <button type="button" class="btn btn-primary" style="flex: 2;" onclick="savePoint()">💾 Lưu</button>
+                </div>
+            </form>
+
+            <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
+                <h4 style="font-size: 13px; margin-bottom: 10px; color: var(--text-muted);">
+                    📋 Danh sách (<span id="pointCount">0</span>)
+                </h4>
+                <div class="points-list" id="pointsList"></div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="exportModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>📤 Xuất code WordPress (Legend Interactive)</h3>
+            <button class="btn btn-secondary" onclick="closeExportModal()" style="width: 32px; height: 32px; padding: 0;">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="export-options">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="includeLegend" checked>
+                    <span>📋 Xuất bảng chú thích tương tác (Click để tìm icon)</span>
+                </label>
+            </div>
+
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="switchTab('wp')">WordPress Block</button>
+                <button class="code-tab" onclick="switchTab('json')">JSON Data</button>
+            </div>
+            
+            <div class="code-block active" id="codeWp"></div>
+            <div class="code-block" id="codeJson"></div>
+
+            <button class="btn btn-success" style="margin-top: 16px; width: 100%;" onclick="copyCode()">📋 Copy code</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const colorPalette = [
+        '#ef4444', '#f87171', '#fca5a5', '#dc2626', '#b91c1c', '#991b1b',
+        '#f97316', '#fb923c', '#fdba74', '#ea580c', '#c2410c', '#9a3412',
+        '#f59e0b', '#fbbf24', '#fcd34d', '#d97706', '#b45309', '#92400e',
+        '#10b981', '#34d399', '#6ee7b7', '#059669', '#047857', '#065f46',
+        '#14b8a6', '#2dd4bf', '#5eead4', '#0d9488', '#0f766e', '#115e59',
+        '#3b82f6', '#60a5fa', '#93c5fd', '#2563eb', '#1d4ed8', '#1e40af',
+        '#6366f1', '#818cf8', '#a5b4fc', '#4f46e5', '#4338ca', '#3730a3',
+        '#ec4899', '#f472b6', '#f9a8d4', '#db2777', '#be185d', '#9d174d',
+        '#6b7280', '#8b5cf6'
+    ];
+
+    let points = [];
+    let selectedPoint = null;
+    let isDragging = false;
+    let draggedPoint = null;
+    let currentImageUrl = '';
+    let iconSizeDesktop = 40;
+    let iconSizeMobile = 32;
+
+    function initColorGrid() {
+        const grid = document.getElementById('colorGrid');
+        colorPalette.forEach(color => {
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch';
+            swatch.style.backgroundColor = color;
+            swatch.dataset.color = color;
+            swatch.onclick = () => selectColor(color, swatch);
+            grid.appendChild(swatch);
+        });
+    }
+
+    function selectColor(color, element) {
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        if (element) element.classList.add('selected');
+        document.getElementById('inputColor').value = color;
+        updateIconPreview();
+    }
+
+    function updateIconPreview() {
+        const color = document.getElementById('inputColor').value;
+        const icon = document.getElementById('inputIcon').value || '🏠';
+        document.getElementById('iconPreview').style.background = color;
+        document.getElementById('iconPreview').textContent = icon;
+    }
+
+    document.getElementById('inputIcon').addEventListener('input', updateIconPreview);
+
+    function loadImageFromUrl() {
+        const url = document.getElementById('imageUrlInput').value.trim();
+        if (!url) { alert('Nhập URL!'); return; }
+        
+        const img = new Image();
+        img.onload = function() {
+            currentImageUrl = url;
+            document.getElementById('mapImage').src = url;
+            document.querySelector('.url-section').style.display = 'none';
+            document.getElementById('mapWrapper').classList.add('active');
+            document.getElementById('mapDimensions').textContent = `${img.naturalWidth}x${img.naturalHeight}`;
+        };
+        img.onerror = () => alert('Lỗi tải ảnh!');
+        img.src = url;
+    }
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if (!currentImageUrl) alert('⚠️ Nhập URL ảnh thật trước khi xuất code!');
+            const img = document.getElementById('mapImage');
+            img.src = e.target.result;
+            img.onload = () => {
+                document.querySelector('.url-section').style.display = 'none';
+                document.getElementById('mapWrapper').classList.add('active');
+                document.getElementById('mapDimensions').textContent = `${img.naturalWidth}x${img.naturalHeight}`;
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    document.getElementById('mapContainer').addEventListener('click', function(e) {
+        if (isDragging) return;
+        if (e.target.closest('.bds-hotspot')) return;
+        
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const percentX = ((x / rect.width) * 100).toFixed(1);
+        const percentY = ((y / rect.height) * 100).toFixed(1);
+        
+        // Get current sizes
+        iconSizeDesktop = parseInt(document.getElementById('iconSizeDesktop').value) || 40;
+        iconSizeMobile = parseInt(document.getElementById('iconSizeMobile').value) || 32;
+        
+        const newPoint = {
+            id: Date.now(),
+            top: parseFloat(percentY),
+            left: parseFloat(percentX),
+            title: `${String(points.length + 1).padStart(2, '0')}`,
+            color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
+            icon: '🏠',
+            effect: 'pulse',
+            area: '',
+            price: '',
+            details: '',
+            sizeDesktop: iconSizeDesktop,
+            sizeMobile: iconSizeMobile
+        };
+        
+        points.push(newPoint);
+        renderMarker(newPoint, true);
+        selectPoint(newPoint);
+        updatePointsList();
+    });
+
+    function renderMarker(point, isNew = false) {
+        const container = document.getElementById('mapContainer');
+        const existing = document.getElementById(`marker-${point.id}`);
+        if (existing) existing.remove();
+        
+        const marker = document.createElement('div');
+        marker.className = `bds-hotspot effect-${point.effect} ${isNew ? 'attention' : ''}`;
+        marker.id = `marker-${point.id}`;
+        marker.style.top = point.top + '%';
+        marker.style.left = point.left + '%';
+        marker.style.backgroundColor = point.color;
+        
+        marker.innerHTML = `
+            <div class="bds-hotspot-icon" style="background-color: ${point.color};">
+                ${point.icon}
+            </div>
+        `;
+        
+        marker.addEventListener('mousedown', startDrag);
+        marker.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectPoint(point);
+        });
+        
+        container.appendChild(marker);
+    }
+
+    function startDrag(e) {
+        isDragging = true;
+        draggedPoint = points.find(p => p.id === parseInt(e.currentTarget.id.split('-')[1]));
+        selectPoint(draggedPoint);
+        
+        const container = document.getElementById('mapContainer');
+        
+        function onMouseMove(e) {
+            const rect = container.getBoundingClientRect();
+            let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+            let y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+            
+            const percentX = ((x / rect.width) * 100).toFixed(1);
+            const percentY = ((y / rect.height) * 100).toFixed(1);
+            
+            draggedPoint.left = parseFloat(percentX);
+            draggedPoint.top = parseFloat(percentY);
+            
+            const marker = document.getElementById(`marker-${draggedPoint.id}`);
+            marker.style.left = percentX + '%';
+            marker.style.top = percentY + '%';
+            
+            document.getElementById('posTop').textContent = percentY + '%';
+            document.getElementById('posLeft').textContent = percentX + '%';
+        }
+        
+        function onMouseUp() {
+            isDragging = false;
+            draggedPoint = null;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    }
+
+    function selectPoint(point) {
+        selectedPoint = point;
+        document.querySelectorAll('.bds-hotspot').forEach(m => m.style.zIndex = '');
+        document.getElementById(`marker-${point.id}`).style.zIndex = '20';
+        
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('pointForm').style.display = 'block';
+        
+        document.getElementById('posTop').textContent = point.top + '%';
+        document.getElementById('posLeft').textContent = point.left + '%';
+        document.getElementById('inputTitle').value = point.title;
+        document.getElementById('inputArea').value = point.area;
+        document.getElementById('inputPrice').value = point.price;
+        document.getElementById('inputDetails').value = point.details;
+        document.getElementById('inputIcon').value = point.icon;
+        document.getElementById('inputColor').value = point.color;
+        document.getElementById('inputEffect').value = point.effect;
+        document.getElementById('iconSizeDesktop').value = point.sizeDesktop || 40;
+        document.getElementById('iconSizeMobile').value = point.sizeMobile || 32;
+        
+        document.querySelectorAll('.color-swatch').forEach(s => {
+            s.classList.remove('selected');
+            if (s.dataset.color === point.color) s.classList.add('selected');
+        });
+        
+        updateIconPreview();
+        updatePointsList();
+    }
+
+    function savePoint() {
+        if (!selectedPoint) return;
+        
+        selectedPoint.title = document.getElementById('inputTitle').value;
+        selectedPoint.color = document.getElementById('inputColor').value;
+        selectedPoint.icon = document.getElementById('inputIcon').value;
+        selectedPoint.effect = document.getElementById('inputEffect').value;
+        selectedPoint.area = document.getElementById('inputArea').value;
+        selectedPoint.price = document.getElementById('inputPrice').value;
+        selectedPoint.details = document.getElementById('inputDetails').value;
+        selectedPoint.sizeDesktop = parseInt(document.getElementById('iconSizeDesktop').value) || 40;
+        selectedPoint.sizeMobile = parseInt(document.getElementById('iconSizeMobile').value) || 32;
+        
+        renderMarker(selectedPoint);
+        updatePointsList();
+        
+        const btn = event.target;
+        btn.innerHTML = '✅ Đã lưu!';
+        setTimeout(() => btn.innerHTML = '💾 Lưu', 1500);
+    }
+
+    function deleteCurrentPoint() {
+        if (!selectedPoint) return;
+        
+        points = points.filter(p => p.id !== selectedPoint.id);
+        document.getElementById(`marker-${selectedPoint.id}`).remove();
+        selectedPoint = null;
+        
+        document.getElementById('pointForm').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+        updatePointsList();
+    }
+
+    function updatePointsList() {
+        const list = document.getElementById('pointsList');
+        document.getElementById('pointCount').textContent = points.length;
+        
+        if (points.length === 0) {
+            list.innerHTML = '<p style="color: var(--text-muted); font-size: 12px; text-align: center;">Chưa có điểm</p>';
+            return;
+        }
+        
+        list.innerHTML = points.map((p, idx) => `
+            <div class="point-item ${selectedPoint?.id === p.id ? 'active' : ''}" onclick="selectPointById(${p.id})">
+                <div class="point-icon" style="background: ${p.color};">${p.icon}</div>
+                <div class="point-info">
+                    <div class="point-title">${idx + 1}. ${p.title}</div>
+                    <div class="point-meta">${p.area || 'N/A'} • ${p.sizeDesktop}px/${p.sizeMobile}px</div>
+                </div>
+                <button class="delete-btn" onclick="event.stopPropagation(); deletePointById(${p.id})">🗑️</button>
+            </div>
+        `).join('');
+    }
+
+    function selectPointById(id) {
+        const point = points.find(p => p.id === id);
+        if (point) selectPoint(point);
+    }
+
+    function deletePointById(id) {
+        points = points.filter(p => p.id !== id);
+        document.getElementById(`marker-${id}`)?.remove();
+        
+        if (selectedPoint?.id === id) {
+            selectedPoint = null;
+            document.getElementById('pointForm').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+        }
+        updatePointsList();
+    }
+
+    function clearAll() {
+        if (points.length === 0) return;
+        if (!confirm(`Xóa tất cả ${points.length} điểm?`)) return;
+        
+        points = [];
+        document.querySelectorAll('.bds-hotspot').forEach(m => m.remove());
+        selectedPoint = null;
+        document.getElementById('pointForm').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+        updatePointsList();
+    }
+
+    function openExportModal() {
+        if (points.length === 0) { alert('Chưa có điểm!'); return; }
+
+        let imgUrl = currentImageUrl;
+        if (!imgUrl) {
+            imgUrl = prompt('Nhập URL ảnh:', 'https://example.com/map.jpg');
+            if (!imgUrl) return;
+            currentImageUrl = imgUrl;
+        }
+
+        const includeLegend = document.getElementById('includeLegend').checked;
+        
+        // Lấy kích thước mặc định từ input chung nếu có
+        const defaultDesktop = document.getElementById('iconSizeDesktop').value || 40;
+        const defaultMobile = document.getElementById('iconSizeMobile').value || 32;
+        
+        // CSS với kích thước tùy chỉnh
+        let sizeVars = '';
+        points.forEach((p, idx) => {
+            sizeVars += `
+  --icon-size-${p.id}: ${p.sizeDesktop || defaultDesktop}px;
+  --icon-size-mobile-${p.id}: ${p.sizeMobile || defaultMobile}px;`;
+        });
+
+        const effectCss = `
+/* Effects */
+@keyframes gentle-pulse {
+  0% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  10%, 30% { transform: scale(1.1); }
+  20%, 40% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Legend interaction animation */
+@keyframes legend-zoom {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.5); }
+}
+
+@keyframes legend-shake {
+  0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+  25% { transform: translate(-50%, -50%) rotate(-15deg); }
+  75% { transform: translate(-50%, -50%) rotate(15deg); }
+}
+
+.bds-hotspot.legend-active {
+  z-index: 25;
+}
+
+.bds-hotspot.legend-active .bds-hotspot-icon {
+  animation: legend-zoom 0.6s ease-in-out 3, legend-shake 0.4s ease-in-out 4;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.8), 0 0 20px rgba(0,0,0,0.5);
+}
+
+.effect-pulse::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0.4;
+  animation: gentle-pulse 2s infinite;
+  left: 0; top: 0;
+  z-index: -1;
+}
+
+.effect-heartbeat .bds-hotspot-icon { animation: heartbeat 1.5s ease-in-out infinite; }
+.effect-shake .bds-hotspot-icon { animation: shake 0.5s ease-in-out infinite; }
+.effect-blink .bds-hotspot-icon { animation: blink 1s ease-in-out infinite; }
+.effect-bounce .bds-hotspot-icon { animation: bounce 0.8s ease-in-out infinite; }
+.effect-rotate .bds-hotspot-icon { animation: rotate 3s linear infinite; }`;
+
+        let hotspotsHtml = '';
+        points.forEach((p, i) => {
+            const edgeClass = p.left < 30 ? 'edge-left' : (p.left > 70 ? 'edge-right' : '');
+            const sizeDesktop = p.sizeDesktop || defaultDesktop;
+            const sizeMobile = p.sizeMobile || defaultMobile;
+            
+            hotspotsHtml += `
+    <div class="bds-hotspot effect-${p.effect} ${edgeClass}" 
+         id="hotspot-${p.id}"
+         style="top:${p.top}%;left:${p.left}%;--spot-color:${p.color};--icon-size:${sizeDesktop}px;--icon-size-mobile:${sizeMobile}px;">
+      <div class="bds-hotspot-icon" style="background:${p.color};width:var(--icon-size);height:var(--icon-size);font-size:calc(var(--icon-size)*0.35);">${p.icon}</div>
+      <div class="bds-tooltip">
+        <h4 style="border-color:${p.color};">${p.title}</h4>
+        <div class="bds-tooltip-info">
+${p.area ? `          <span>📐 Diện tích: ${p.area}</span>\n` : ''}${p.price ? `          <span>💰 Giá: ${p.price}</span>\n` : ''}${p.details ? `          <span>ℹ️ ${p.details}</span>\n` : ''}        </div>
+      </div>
+    </div>`;
+        });
+
+        let legendHtml = '';
+        let legendCss = '';
+        let legendJs = '';
+        
+        if (includeLegend) {
+            // Tạo legend với data-target để link với hotspot
+            const uniqueItems = [];
+            const seen = new Set();
+            points.forEach(p => {
+                const key = `${p.color}-${p.icon}-${p.title}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueItems.push(p);
+                }
+            });
+
+            legendHtml = `
+<!-- Legend - Click để tìm vị trí -->
+<div class="bds-legend" id="bdsLegend">
+${uniqueItems.map(p => `  <div class="bds-legend-item" data-target="hotspot-${p.id}">
+    <div class="bds-legend-icon" style="background:${p.color};">${p.icon}</div>
+    <span>${p.title}</span>
+    <small class="legend-hint">👆 Click để tìm</small>
+  </div>`).join('\n')}
+</div>`;
+
+            legendCss = `
+.bds-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 10px;
+}
+
+.bds-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  background: white;
+  padding: 10px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.bds-legend-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  background: #f0f9ff;
+}
+
+.bds-legend-item:active {
+  transform: scale(0.98);
+}
+
+.bds-legend-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+.legend-hint {
+  margin-left: auto;
+  font-size: 11px;
+  color: #888;
+  font-weight: normal;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.bds-legend-item:hover .legend-hint {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .bds-legend { grid-template-columns: repeat(2, 1fr); padding: 12px; gap: 8px; }
+  .bds-legend-item { font-size: 12px; padding: 8px 10px; }
+  .bds-legend-icon { width: 20px; height: 20px; font-size: 10px; }
+  .legend-hint { display: none; }
+}`;
+
+            // JavaScript cho tương tác legend
+            legendJs = `
+  // Legend interaction - Click to find hotspot
+  document.querySelectorAll('.bds-legend-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      var targetId = this.getAttribute('data-target');
+      var hotspot = document.getElementById(targetId);
+      
+      if (hotspot) {
+        // Remove active class from all
+        document.querySelectorAll('.bds-hotspot').forEach(function(h) {
+          h.classList.remove('legend-active');
+          h.style.zIndex = '10';
+        });
+        
+        // Add active class to target
+        hotspot.classList.add('legend-active');
+        hotspot.style.zIndex = '25';
+        
+        // Scroll into view if needed (smooth)
+        hotspot.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        
+        // Remove after 2 seconds
+        setTimeout(function() {
+          hotspot.classList.remove('legend-active');
+          hotspot.style.zIndex = '10';
+        }, 2000);
+      }
+    });
+  });`;
+        }
+
+        const fullCode = `<!-- BDS Interactive Map - Legend Zoom Feature -->
+<style>
+.bds-map-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Ảnh nền z-index: 1 */
+.bds-map-wrapper > img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  position: relative;
+  z-index: 1;
+}
+
+/* Icon z-index: 10 */
+.bds-hotspot {
+  position: absolute;
+  width: var(--icon-size, 40px);
+  height: var(--icon-size, 40px);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* Active z-index: 20 */
+.bds-hotspot:hover,
+.bds-hotspot.active {
+  z-index: 20;
+}
+
+.bds-hotspot-icon {
+  width: var(--icon-size, 40px);
+  height: var(--icon-size, 40px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+  border: 3px solid white;
+  position: relative;
+  z-index: 10;
+  transition: all 0.3s;
+}
+
+.bds-hotspot:hover .bds-hotspot-icon {
+  transform: scale(1.2);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+}
+
+${effectCss}
+
+/* Tooltip z-index: 30 */
+.bds-tooltip {
+  position: absolute;
+  bottom: calc(var(--icon-size, 40px) + 10px);
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  background: rgba(255,255,255,0.98);
+  padding: 14px;
+  border-radius: 10px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  width: 240px;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  z-index: 30;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.bds-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: rgba(255,255,255,0.98);
+}
+
+.bds-hotspot.edge-left .bds-tooltip { left: 0; transform: translateX(0) scale(0); }
+.bds-hotspot.edge-left .bds-tooltip::after { left: 16px; }
+
+.bds-hotspot.edge-right .bds-tooltip { left: auto; right: 0; transform: translateX(0) scale(0); }
+.bds-hotspot.edge-right .bds-tooltip::after { left: auto; right: 16px; }
+
+.bds-hotspot:hover .bds-tooltip,
+.bds-hotspot.active .bds-tooltip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) scale(1);
+}
+
+.bds-hotspot.edge-left:hover .bds-tooltip,
+.bds-hotspot.edge-left.active .bds-tooltip { transform: translateX(0) scale(1); }
+
+.bds-hotspot.edge-right:hover .bds-tooltip,
+.bds-hotspot.edge-right.active .bds-tooltip { transform: translateX(0) scale(1); }
+
+.bds-tooltip h4 {
+  margin: 0 0 8px 0;
+  color: #222;
+  font-size: 15px;
+  font-weight: 700;
+  border-bottom: 3px solid;
+  padding-bottom: 6px;
+}
+
+.bds-tooltip-info { font-size: 13px; color: #555; line-height: 1.5; }
+.bds-tooltip-info span { display: block; margin: 4px 0; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .bds-hotspot {
+    width: var(--icon-size-mobile, 32px);
+    height: var(--icon-size-mobile, 32px);
+  }
+  .bds-hotspot-icon {
+    width: var(--icon-size-mobile, 32px);
+    height: var(--icon-size-mobile, 32px);
+    border-width: 2px;
+  }
+  .bds-tooltip {
+    width: calc(100vw - 40px);
+    max-width: 260px;
+    padding: 12px;
+    bottom: calc(var(--icon-size-mobile, 32px) + 8px);
+  }
+  .bds-hotspot.edge-left .bds-tooltip { left: -15px; }
+  .bds-hotspot.edge-right .bds-tooltip { right: -15px; left: auto; }
+}
+${legendCss}
+</style>
+
+<div class="bds-map-wrapper" id="bdsProjectMap">
+  <img src="${imgUrl}" alt="Mặt bằng dự án">
+  ${hotspotsHtml}
+</div>
+${legendHtml}
+
+<script>
+(function() {
+  // Hotspot click handler
+  var hotspots = document.querySelectorAll('.bds-hotspot');
+  
+  hotspots.forEach(function(hotspot) {
+    hotspot.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var isActive = this.classList.contains('active');
+      
+      hotspots.forEach(function(h) {
+        h.classList.remove('active');
+        h.style.zIndex = '10';
+      });
+      
+      if (!isActive) {
+        this.classList.add('active');
+        this.style.zIndex = '20';
+      }
+    });
+  });
+  
+  // Click outside to close
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.bds-hotspot')) {
+      hotspots.forEach(function(h) {
+        h.classList.remove('active');
+        h.style.zIndex = '10';
+      });
+    }
+  });
+  
+  ${legendJs}
+})();
+<\/script>`;
+        
+        document.getElementById('codeWp').textContent = fullCode;
+        document.getElementById('codeJson').textContent = JSON.stringify(points, null, 2);
+        document.getElementById('exportModal').classList.add('active');
+    }
+
+    function closeExportModal() {
+        document.getElementById('exportModal').classList.remove('active');
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById('code' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+    }
+
+    function copyCode() {
+        const activeBlock = document.querySelector('.code-block.active');
+        navigator.clipboard.writeText(activeBlock.textContent).then(() => {
+            const btn = event.target;
+            btn.innerHTML = '✅ Đã copy!';
+            setTimeout(() => btn.innerHTML = '📋 Copy code', 2000);
+        });
+    }
+
+    initColorGrid();
+    selectColor(colorPalette[0], document.querySelector('.color-swatch'));
+</script>
+
+</body>
+</html>
