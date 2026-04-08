@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BDS Map Builder - Legend Interactive</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
             --primary: #4f46e5;
             --danger: #ef4444;
@@ -33,7 +38,9 @@
 
         .header {
             position: fixed;
-            top: 0; left: 0; right: 0;
+            top: 0;
+            left: 0;
+            right: 0;
             height: 60px;
             background: var(--panel);
             border-bottom: 1px solid var(--border);
@@ -44,8 +51,12 @@
             z-index: 100;
         }
 
-        .logo { font-size: 18px; font-weight: 700; color: var(--primary); }
-        
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
         .btn {
             padding: 8px 16px;
             border-radius: 6px;
@@ -55,10 +66,26 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-secondary { background: var(--bg); border: 1px solid var(--border); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { background: #fee2e2; color: var(--danger); }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: var(--danger);
+        }
 
         .main-content {
             margin-top: 60px;
@@ -81,14 +108,20 @@
             margin-bottom: 20px;
             color: white;
         }
-        .url-input-group { display: flex; gap: 10px; margin-top: 10px; }
+
+        .url-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         .url-input {
             flex: 1;
             padding: 10px 14px;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 6px;
             font-size: 13px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             color: white;
             outline: none;
         }
@@ -100,7 +133,10 @@
             border-radius: 8px;
             overflow: hidden;
         }
-        .map-wrapper.active { display: block; }
+
+        .map-wrapper.active {
+            display: block;
+        }
 
         .bds-map-preview {
             position: relative;
@@ -108,12 +144,13 @@
             max-width: 1400px;
             margin: 0 auto;
         }
+
         .bds-map-preview img {
             width: 100%;
             height: auto;
             display: block;
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             position: relative;
             z-index: 1;
         }
@@ -127,7 +164,10 @@
             z-index: 10;
         }
 
-        .bds-hotspot:hover, .bds-hotspot.active { z-index: 20; }
+        .bds-hotspot:hover,
+        .bds-hotspot.active {
+            z-index: 20;
+        }
 
         .bds-hotspot-icon {
             width: 40px;
@@ -139,7 +179,7 @@
             color: white;
             font-size: 14px;
             font-weight: 600;
-            box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
             border: 3px solid white;
             position: relative;
             z-index: 10;
@@ -148,48 +188,117 @@
 
         /* Effects */
         @keyframes gentle-pulse {
-            0% { transform: scale(1); opacity: 0.4; }
-            50% { transform: scale(1.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 0; }
+            0% {
+                transform: scale(1);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
         }
 
         @keyframes heartbeat {
-            0%, 100% { transform: scale(1); }
-            10%, 30% { transform: scale(1.1); }
-            20%, 40% { transform: scale(1); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            10%,
+            30% {
+                transform: scale(1.1);
+            }
+
+            20%,
+            40% {
+                transform: scale(1);
+            }
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-3px); }
-            75% { transform: translateX(3px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-3px);
+            }
+
+            75% {
+                transform: translateX(3px);
+            }
         }
 
         @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
         }
 
         @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
         }
 
         @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Legend interaction effect */
         @keyframes legend-bounce {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.4); }
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.4);
+            }
         }
 
         @keyframes legend-shake {
-            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-            25% { transform: translate(-50%, -50%) rotate(-10deg); }
-            75% { transform: translate(-50%, -50%) rotate(10deg); }
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            25% {
+                transform: translate(-50%, -50%) rotate(-10deg);
+            }
+
+            75% {
+                transform: translate(-50%, -50%) rotate(10deg);
+            }
         }
 
         .effect-pulse::before {
@@ -201,19 +310,219 @@
             background: inherit;
             opacity: 0.4;
             animation: gentle-pulse 2s infinite;
-            left: 0; top: 0;
+            left: 0;
+            top: 0;
             z-index: -1;
         }
 
-        .effect-heartbeat .bds-hotspot-icon { animation: heartbeat 1.5s ease-in-out infinite; }
-        .effect-shake .bds-hotspot-icon { animation: shake 0.5s ease-in-out infinite; }
-        .effect-blink .bds-hotspot-icon { animation: blink 1s ease-in-out infinite; }
-        .effect-bounce .bds-hotspot-icon { animation: bounce 0.8s ease-in-out infinite; }
-        .effect-rotate .bds-hotspot-icon { animation: rotate 3s linear infinite; }
+        .effect-heartbeat .bds-hotspot-icon {
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        .effect-shake .bds-hotspot-icon {
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        .effect-blink .bds-hotspot-icon {
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        .effect-bounce .bds-hotspot-icon {
+            animation: bounce 0.8s ease-in-out infinite;
+        }
+
+        .effect-rotate .bds-hotspot-icon {
+            animation: rotate 3s linear infinite;
+        }
 
         .bds-hotspot:hover .bds-hotspot-icon {
             transform: scale(1.2);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Tap hint badge */
+        @keyframes tap-bounce {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(-3px) scale(1.15);
+            }
+        }
+
+        .bds-tap-hint {
+            position: absolute;
+            top: 50%;
+            margin-top: -9px;
+            right: -10px;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            animation: tap-bounce 1.4s ease-in-out infinite;
+            z-index: 15;
+            pointer-events: none;
+            border: 1.5px solid rgba(0, 0, 0, 0.08);
+            /* Mờ mặc định, sẽ ẩn khi người dùng đã tương tác */
+            opacity: 0.8;
+            transition: opacity 2s;
+        }
+
+        /* Khi người dùng đã hover/tap bất kỳ hotspot → ẩn hết badge */
+        body.hints-dismissed .bds-tap-hint,
+        body.bds-hints-dismissed .bds-tap-hint {
+            opacity: 0 !important;
+            animation: none;
+        }
+
+        /* Label tên bên dưới icon */
+        .bds-hotspot-label {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.55);
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 15;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            backdrop-filter: blur(2px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        /* Ẩn nhãn khi container có class labels-hidden */
+        #mapContainer.labels-hidden .bds-hotspot-label {
+            opacity: 0 !important;
+            transform: translateX(-50%) translateY(4px);
+            pointer-events: none;
+        }
+
+        /* Nút toggle nhãn */
+        .label-toggle-btn {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            z-index: 40;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1.5px solid rgba(0, 0, 0, 0.12);
+            border-radius: 20px;
+            padding: 5px 10px 5px 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #4f46e5;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .label-toggle-btn:hover {
+            background: #eef2ff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .label-toggle-btn.off {
+            color: #9ca3af;
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+
+        .label-toggle-btn .toggle-dot {
+            width: 28px;
+            height: 16px;
+            background: #4f46e5;
+            border-radius: 8px;
+            position: relative;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .label-toggle-btn .toggle-dot::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 14px;
+            transition: left 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        }
+
+        .label-toggle-btn.off .toggle-dot {
+            background: #d1d5db;
+        }
+
+        .label-toggle-btn.off .toggle-dot::after {
+            left: 2px;
+        }
+
+        /* Toast hint */
+        @keyframes toast-in {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes toast-out {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+        }
+
+        #mapHintToast {
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.72);
+            color: #fff;
+            font-size: 12px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 50;
+            animation: toast-in 0.4s ease forwards;
+            pointer-events: none;
+            white-space: nowrap;
+            backdrop-filter: blur(4px);
+        }
+
+        #mapHintToast.hiding {
+            animation: toast-out 0.4s ease forwards;
         }
 
         /* Sidebar */
@@ -238,15 +547,20 @@
             padding: 16px;
         }
 
-        .form-group { margin-bottom: 12px; }
-        .form-label { 
-            display: block; 
-            font-size: 12px; 
-            font-weight: 600; 
-            margin-bottom: 4px; 
+        .form-group {
+            margin-bottom: 12px;
         }
 
-        .form-input, .form-select, .form-textarea {
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
             width: 100%;
             padding: 8px 10px;
             border: 1px solid var(--border);
@@ -285,21 +599,27 @@
             position: relative;
         }
 
-        .color-swatch:hover { transform: scale(1.2); z-index: 10; }
-        .color-swatch.selected { 
-            border-color: #222; 
+        .color-swatch:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+
+        .color-swatch.selected {
+            border-color: #222;
             transform: scale(1.1);
             box-shadow: 0 0 0 2px white, 0 0 0 3px var(--primary);
         }
+
         .color-swatch.selected::after {
             content: '✓';
             position: absolute;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%);
             color: white;
             font-size: 10px;
             font-weight: bold;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .row-flex {
@@ -332,7 +652,7 @@
             color: white;
             font-size: 14px;
             border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .effect-select {
@@ -373,22 +693,26 @@
             border-radius: 6px;
             margin-bottom: 12px;
         }
-        .coord-value { 
-            font-family: monospace; 
-            font-size: 16px; 
-            font-weight: bold; 
-            color: var(--primary); 
-            text-align: center; 
+
+        .coord-value {
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--primary);
+            text-align: center;
         }
-        .coord-label { 
-            font-size: 11px; 
-            color: var(--text-muted); 
-            text-align: center; 
+
+        .coord-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
             text-transform: uppercase;
         }
 
-        .points-list { margin-top: 16px; }
-        
+        .points-list {
+            margin-top: 16px;
+        }
+
         .point-item {
             display: flex;
             align-items: center;
@@ -402,8 +726,15 @@
             transition: all 0.2s;
         }
 
-        .point-item:hover { background: #f3f4f6; border-color: var(--primary); }
-        .point-item.active { background: #eef2ff; border-color: var(--primary); }
+        .point-item:hover {
+            background: #f3f4f6;
+            border-color: var(--primary);
+        }
+
+        .point-item.active {
+            background: #eef2ff;
+            border-color: var(--primary);
+        }
 
         .point-icon {
             width: 28px;
@@ -416,13 +747,27 @@
             font-size: 11px;
             font-weight: 600;
             border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             flex-shrink: 0;
         }
 
-        .point-info { flex: 1; min-width: 0; }
-        .point-title { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .point-meta { font-size: 11px; color: var(--text-muted); }
+        .point-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .point-title {
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .point-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
 
         .delete-btn {
             width: 24px;
@@ -437,7 +782,11 @@
             justify-content: center;
             font-size: 16px;
         }
-        .delete-btn:hover { background: #fee2e2; color: var(--danger); }
+
+        .delete-btn:hover {
+            background: #fee2e2;
+            color: var(--danger);
+        }
 
         .empty-state {
             text-align: center;
@@ -448,14 +797,20 @@
 
         .modal-overlay {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
             display: none;
             align-items: center;
             justify-content: center;
         }
-        .modal-overlay.active { display: flex; }
+
+        .modal-overlay.active {
+            display: flex;
+        }
 
         .modal {
             background: white;
@@ -463,7 +818,7 @@
             max-width: 900px;
             max-height: 90vh;
             border-radius: 12px;
-            box-shadow: 0 20px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
         }
@@ -537,452 +892,567 @@
             overflow-y: auto;
         }
 
-        .code-block.active { display: block; }
+        .code-block.active {
+            display: block;
+        }
 
         @media (max-width: 768px) {
-            .app-container { grid-template-columns: 1fr; }
-            .sidebar { height: 40vh; }
-            .color-grid { grid-template-columns: repeat(8, 1fr); }
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                height: 40vh;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(8, 1fr);
+            }
         }
     </style>
 </head>
+
 <body>
 
-<div class="app-container">
-    <header class="header">
-        <div class="logo">🏢 BDS Map Builder - Legend Zoom</div>
-        <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary" onclick="clearAll()">🗑️ Xóa tất cả</button>
-            <button class="btn btn-primary" onclick="openImportModal()" style="background: #eab308; color: #fff;">📥 Nhập code</button>
-            <button class="btn btn-success" onclick="openExportModal()">📤 Xuất code</button>
-        </div>
-    </header>
-
-    <main class="main-content">
-        <div class="workspace">
-            <div class="url-section">
-                <h3 style="font-size: 16px; margin-bottom: 8px;">🌐 URL hình ảnh nền</h3>
-                <div class="url-input-group">
-                    <input type="text" class="url-input" id="imageUrlInput" placeholder="https://example.com/map.jpg">
-                    <button class="btn" style="background: white; color: #667eea;" onclick="loadImageFromUrl()">Tải</button>
-                </div>
-                <div style="margin-top: 10px; font-size: 12px; opacity: 0.9;">
-                    Hoặc upload: <input type="file" id="fileInput" accept="image/*" style="font-size: 12px;" onchange="handleFileUpload(event)">
-                </div>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">🏢 BDS Map Builder - Legend Zoom</div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-secondary" onclick="clearAll()">🗑️ Xóa tất cả</button>
+                <button class="btn btn-primary" onclick="openImportModal()" style="background: #eab308; color: #fff;">📥
+                    Nhập code</button>
+                <button class="btn btn-success" onclick="openExportModal()">📤 Xuất code</button>
             </div>
+        </header>
 
-            <div class="map-wrapper" id="mapWrapper">
-                <div style="padding: 10px; background: #f9fafb; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 12px; color: var(--text-muted);">Click thêm điểm • Kéo thả di chuyển</span>
-                    <span style="font-size: 12px; color: var(--primary); font-weight: 600;" id="mapDimensions"></span>
-                </div>
-                <div style="padding: 16px; text-align: center;">
-                    <div class="bds-map-preview" id="mapContainer">
-                        <img id="mapImage" src="" alt="Map">
+        <main class="main-content">
+            <div class="workspace">
+                <div class="url-section">
+                    <h3 style="font-size: 16px; margin-bottom: 8px;">🌐 URL hình ảnh nền</h3>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" id="imageUrlInput"
+                            placeholder="https://example.com/map.jpg">
+                        <button class="btn" style="background: white; color: #667eea;"
+                            onclick="loadImageFromUrl()">Tải</button>
                     </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h3 style="font-size: 14px;">🎨 Thông tin điểm</h3>
-        </div>
-        
-        <div class="sidebar-content">
-            <div class="empty-state" id="emptyState">
-                <div style="font-size: 40px; margin-bottom: 8px;">📍</div>
-                <p>Chưa chọn điểm nào</p>
-                <p style="font-size: 12px; margin-top: 4px;">Click vào bản đồ để thêm</p>
-            </div>
-
-            <form id="pointForm" style="display: none;">
-                <div class="coord-display">
-                    <div>
-                        <div class="coord-value" id="posTop">0%</div>
-                        <div class="coord-label">Top</div>
-                    </div>
-                    <div>
-                        <div class="coord-value" id="posLeft">0%</div>
-                        <div class="coord-label">Left</div>
+                    <div style="margin-top: 10px; font-size: 12px; opacity: 0.9;">
+                        Hoặc upload: <input type="file" id="fileInput" accept="image/*" style="font-size: 12px;"
+                            onchange="handleFileUpload(event)">
                     </div>
                 </div>
 
-                <div class="compact-box">
-                    <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">🎨 Màu & Icon</div>
-                    
-                    <div class="color-grid" id="colorGrid"></div>
-                    <input type="hidden" id="inputColor" value="#4f46e5">
-
-                    <div class="row-flex" style="margin-top: 10px;">
-                        <div class="icon-group">
-                            <input type="text" class="form-input icon-input" id="inputIcon" maxlength="2" placeholder="🏠" value="🏠">
-                            <div class="icon-preview-small" id="iconPreview" style="background: #4f46e5;">🏠</div>
+                <div class="map-wrapper" id="mapWrapper">
+                    <div
+                        style="padding: 10px; background: #f9fafb; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 12px; color: var(--text-muted);">Click thêm điểm • Kéo thả di
+                            chuyển</span>
+                        <span style="font-size: 12px; color: var(--primary); font-weight: 600;"
+                            id="mapDimensions"></span>
+                    </div>
+                    <div style="padding: 16px; text-align: center; position: relative;">
+                        <div class="bds-map-preview" id="mapContainer" style="position: relative;">
+                            <img id="mapImage" src="" alt="Map">
                         </div>
-                        
-                        <select class="form-select effect-select" id="inputEffect">
-                            <option value="pulse">✨ Lan tỏa</option>
-                            <option value="heartbeat">💓 Nhịp tim</option>
-                            <option value="shake">📳 Rung</option>
-                            <option value="blink">💡 Nháy</option>
-                            <option value="bounce">⬆️ Nảy</option>
-                            <option value="rotate">🔄 Xoay</option>
-                            <option value="none">⛔ Không</option>
-                        </select>
+                        <!-- Nút toggle nhãn gợi ý -->
+                        <button class="label-toggle-btn" id="labelToggleBtn" onclick="toggleHintLabels()"
+                            title="Bật/tắt nhãn gợi ý">
+                            <span class="toggle-dot"></span>
+                            <span id="labelToggleText">Nhãn</span>
+                        </button>
                     </div>
                 </div>
+            </div>
+        </main>
 
-                <!-- Icon Size Settings -->
-                <div class="compact-box">
-                    <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px;">📐 Kích thước icon (px)</div>
-                    <div class="size-input-group">
-                        <div class="size-field">
-                            <label>Desktop (>768px)</label>
-                            <input type="number" id="iconSizeDesktop" value="40" min="20" max="100">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3 style="font-size: 14px;">🎨 Thông tin điểm</h3>
+            </div>
+
+            <div class="sidebar-content">
+                <div class="empty-state" id="emptyState">
+                    <div style="font-size: 40px; margin-bottom: 8px;">📍</div>
+                    <p>Chưa chọn điểm nào</p>
+                    <p style="font-size: 12px; margin-top: 4px;">Click vào bản đồ để thêm</p>
+                </div>
+
+                <form id="pointForm" style="display: none;">
+                    <div class="coord-display">
+                        <div>
+                            <div class="coord-value" id="posTop">0%</div>
+                            <div class="coord-label">Top</div>
                         </div>
-                        <div class="size-field">
-                            <label>Mobile (≤768px)</label>
-                            <input type="number" id="iconSizeMobile" value="32" min="20" max="100">
+                        <div>
+                            <div class="coord-value" id="posLeft">0%</div>
+                            <div class="coord-label">Left</div>
                         </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="form-label">Tên khu vực</label>
-                    <input type="text" class="form-input" id="inputTitle" placeholder="VD: Lô A1...">
-                </div>
+                    <div class="compact-box">
+                        <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">🎨 Màu & Icon</div>
 
-                <div class="form-group">
-                    <label class="form-label">Diện tích</label>
-                    <input type="text" class="form-input" id="inputArea" placeholder="VD: 100m²...">
-                </div>
+                        <div class="color-grid" id="colorGrid"></div>
+                        <input type="hidden" id="inputColor" value="#4f46e5">
 
-                <div class="form-group">
-                    <label class="form-label">Giá</label>
-                    <input type="text" class="form-input" id="inputPrice" placeholder="VD: 2.5 tỷ...">
-                </div>
+                        <div class="row-flex" style="margin-top: 10px;">
+                            <div class="icon-group">
+                                <input type="text" class="form-input icon-input" id="inputIcon" maxlength="2"
+                                    placeholder="🏠" value="🏠">
+                                <div class="icon-preview-small" id="iconPreview" style="background: #4f46e5;">🏠</div>
+                            </div>
 
-                <div class="form-group">
-                    <label class="form-label">Mô tả</label>
-                    <textarea class="form-textarea" id="inputDetails" placeholder="Thông tin thêm..."></textarea>
-                </div>
+                            <select class="form-select effect-select" id="inputEffect">
+                                <option value="pulse">✨ Lan tỏa</option>
+                                <option value="heartbeat">💓 Nhịp tim</option>
+                                <option value="shake">📳 Rung</option>
+                                <option value="blink">💡 Nháy</option>
+                                <option value="bounce">⬆️ Nảy</option>
+                                <option value="rotate">🔄 Xoay</option>
+                                <option value="none">⛔ Không</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <div style="display: flex; gap: 8px; margin-top: 16px;">
-                    <button type="button" class="btn btn-danger" style="flex: 1;" onclick="deleteCurrentPoint()">🗑️ Xóa</button>
-                    <button type="button" class="btn btn-primary" style="flex: 2;" onclick="savePoint()">💾 Lưu</button>
-                </div>
-            </form>
+                    <!-- Icon Size Settings -->
+                    <div class="compact-box">
+                        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px;">📐 Kích thước icon (px)
+                        </div>
+                        <div class="size-input-group">
+                            <div class="size-field">
+                                <label>Desktop (>768px)</label>
+                                <input type="number" id="iconSizeDesktop" value="40" min="20" max="100">
+                            </div>
+                            <div class="size-field">
+                                <label>Mobile (≤768px)</label>
+                                <input type="number" id="iconSizeMobile" value="32" min="20" max="100">
+                            </div>
+                        </div>
+                    </div>
 
-            <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
-                <h4 style="font-size: 13px; margin-bottom: 10px; color: var(--text-muted);">
-                    📋 Danh sách (<span id="pointCount">0</span>)
-                </h4>
-                <div class="points-list" id="pointsList"></div>
+                    <div class="form-group">
+                        <label class="form-label">Tên khu vực</label>
+                        <input type="text" class="form-input" id="inputTitle" placeholder="VD: Lô A1...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="display:flex;align-items:center;gap:5px;">
+                            Nhãn gợi ý (hiển thị dưới icon)
+                            <span style="font-size:10px;color:#9ca3af;font-weight:400;">Để trống → tự lấy tên; chỉ gõ
+                                cách → ẩn</span>
+                        </label>
+                        <input type="text" class="form-input" id="inputHintLabel"
+                            placeholder="Để trống: tự lấy 10 ký tự đầu tên điểm" maxlength="20">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Diện tích</label>
+                        <input type="text" class="form-input" id="inputArea" placeholder="VD: 100m²...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Giá</label>
+                        <input type="text" class="form-input" id="inputPrice" placeholder="VD: 2.5 tỷ...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-textarea" id="inputDetails" placeholder="Thông tin thêm..."></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 16px;">
+                        <button type="button" class="btn btn-danger" style="flex: 1;" onclick="deleteCurrentPoint()">🗑️
+                            Xóa</button>
+                        <button type="button" class="btn btn-primary" style="flex: 2;" onclick="savePoint()">💾
+                            Lưu</button>
+                    </div>
+                </form>
+
+                <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
+                    <h4 style="font-size: 13px; margin-bottom: 10px; color: var(--text-muted);">
+                        📋 Danh sách (<span id="pointCount">0</span>)
+                    </h4>
+                    <div class="points-list" id="pointsList"></div>
+                </div>
             </div>
-        </div>
-    </aside>
-</div>
+        </aside>
+    </div>
 
-<!-- Import Modal -->
-<div class="modal-overlay" id="importModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3>📥 Nhập code để chỉnh sửa tiếp</h3>
-            <button class="btn btn-secondary" onclick="closeImportModal()" style="width: 32px; height: 32px; padding: 0;">✕</button>
-        </div>
-        <div class="modal-body">
-            <p style="margin-bottom: 12px; font-size: 13px; color: var(--text-muted);">Dán đoạn mã HTML (WordPress) hoặc dữ liệu JSON bạn đã xuất trước đó vào đây:</p>
-            <textarea id="importCodeInput" class="form-textarea" style="height: 200px; font-family: monospace; white-space: pre-wrap; word-break: break-all;" placeholder="Dán code HTML hoặc JSON..."></textarea>
-            
-            <button class="btn btn-primary" style="margin-top: 16px; width: 100%;" onclick="processImportCode()">📥 Xử lý & Nhập</button>
+    <!-- Import Modal -->
+    <div class="modal-overlay" id="importModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📥 Nhập code để chỉnh sửa tiếp</h3>
+                <button class="btn btn-secondary" onclick="closeImportModal()"
+                    style="width: 32px; height: 32px; padding: 0;">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 12px; font-size: 13px; color: var(--text-muted);">Dán đoạn mã HTML (WordPress)
+                    hoặc dữ liệu JSON bạn đã xuất trước đó vào đây:</p>
+                <textarea id="importCodeInput" class="form-textarea"
+                    style="height: 200px; font-family: monospace; white-space: pre-wrap; word-break: break-all;"
+                    placeholder="Dán code HTML hoặc JSON..."></textarea>
+
+                <button class="btn btn-primary" style="margin-top: 16px; width: 100%;" onclick="processImportCode()">📥
+                    Xử lý & Nhập</button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Export Modal -->
-<div class="modal-overlay" id="exportModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3>📤 Xuất code WordPress (Legend Interactive)</h3>
-            <button class="btn btn-secondary" onclick="closeExportModal()" style="width: 32px; height: 32px; padding: 0;">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="export-options">
-                <label class="checkbox-wrapper">
-                    <input type="checkbox" id="includeLegend" checked>
-                    <span>📋 Xuất bảng chú thích tương tác (Click để tìm icon)</span>
-                </label>
+    <!-- Export Modal -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📤 Xuất code WordPress (Legend Interactive)</h3>
+                <button class="btn btn-secondary" onclick="closeExportModal()"
+                    style="width: 32px; height: 32px; padding: 0;">✕</button>
             </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" id="includeLegend" checked>
+                        <span>📋 Xuất bảng chú thích tương tác (Click để tìm icon)</span>
+                    </label>
+                </div>
 
-            <div class="code-tabs">
-                <button class="code-tab active" onclick="switchTab('wp')">WordPress Block</button>
-                <button class="code-tab" onclick="switchTab('json')">JSON Data</button>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab('wp')">WordPress Block</button>
+                    <button class="code-tab" onclick="switchTab('json')">JSON Data</button>
+                </div>
+
+                <div class="code-block active" id="codeWp"></div>
+                <div class="code-block" id="codeJson"></div>
+
+                <button class="btn btn-success" style="margin-top: 16px; width: 100%;" onclick="copyCode(this)">📋 Copy
+                    code</button>
             </div>
-            
-            <div class="code-block active" id="codeWp"></div>
-            <div class="code-block" id="codeJson"></div>
-
-            <button class="btn btn-success" style="margin-top: 16px; width: 100%;" onclick="copyCode(this)">📋 Copy code</button>
         </div>
     </div>
-</div>
 
-<script>
-    const colorPalette = [
-        '#ef4444', '#f87171', '#fca5a5', '#dc2626', '#b91c1c', '#991b1b',
-        '#f97316', '#fb923c', '#fdba74', '#ea580c', '#c2410c', '#9a3412',
-        '#f59e0b', '#fbbf24', '#fcd34d', '#d97706', '#b45309', '#92400e',
-        '#10b981', '#34d399', '#6ee7b7', '#059669', '#047857', '#065f46',
-        '#14b8a6', '#2dd4bf', '#5eead4', '#0d9488', '#0f766e', '#115e59',
-        '#3b82f6', '#60a5fa', '#93c5fd', '#2563eb', '#1d4ed8', '#1e40af',
-        '#6366f1', '#818cf8', '#a5b4fc', '#4f46e5', '#4338ca', '#3730a3',
-        '#ec4899', '#f472b6', '#f9a8d4', '#db2777', '#be185d', '#9d174d',
-        '#6b7280', '#8b5cf6'
-    ];
+    <script>
+        const colorPalette = [
+            '#ef4444', '#f87171', '#fca5a5', '#dc2626', '#b91c1c', '#991b1b',
+            '#f97316', '#fb923c', '#fdba74', '#ea580c', '#c2410c', '#9a3412',
+            '#f59e0b', '#fbbf24', '#fcd34d', '#d97706', '#b45309', '#92400e',
+            '#10b981', '#34d399', '#6ee7b7', '#059669', '#047857', '#065f46',
+            '#14b8a6', '#2dd4bf', '#5eead4', '#0d9488', '#0f766e', '#115e59',
+            '#3b82f6', '#60a5fa', '#93c5fd', '#2563eb', '#1d4ed8', '#1e40af',
+            '#6366f1', '#818cf8', '#a5b4fc', '#4f46e5', '#4338ca', '#3730a3',
+            '#ec4899', '#f472b6', '#f9a8d4', '#db2777', '#be185d', '#9d174d',
+            '#6b7280', '#8b5cf6'
+        ];
 
-    let points = [];
-    let selectedPoint = null;
-    let isDragging = false;
-    let draggedPoint = null;
-    let currentImageUrl = '';
-    let iconSizeDesktop = 40;
-    let iconSizeMobile = 32;
+        let points = [];
+        let selectedPoint = null;
+        let isDragging = false;
+        let draggedPoint = null;
+        let currentImageUrl = '';
+        let iconSizeDesktop = 40;
+        let iconSizeMobile = 32;
 
-    function initColorGrid() {
-        const grid = document.getElementById('colorGrid');
-        colorPalette.forEach(color => {
-            const swatch = document.createElement('div');
-            swatch.className = 'color-swatch';
-            swatch.style.backgroundColor = color;
-            swatch.dataset.color = color;
-            swatch.onclick = () => selectColor(color, swatch);
-            grid.appendChild(swatch);
-        });
-    }
+        function initColorGrid() {
+            const grid = document.getElementById('colorGrid');
+            colorPalette.forEach(color => {
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch';
+                swatch.style.backgroundColor = color;
+                swatch.dataset.color = color;
+                swatch.onclick = () => selectColor(color, swatch);
+                grid.appendChild(swatch);
+            });
+        }
 
-    function selectColor(color, element) {
-        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-        if (element) element.classList.add('selected');
-        document.getElementById('inputColor').value = color;
-        updateIconPreview();
-    }
+        function selectColor(color, element) {
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+            if (element) element.classList.add('selected');
+            document.getElementById('inputColor').value = color;
+            updateIconPreview();
+        }
 
-    function updateIconPreview() {
-        const color = document.getElementById('inputColor').value;
-        const icon = document.getElementById('inputIcon').value || '🏠';
-        document.getElementById('iconPreview').style.background = color;
-        document.getElementById('iconPreview').textContent = icon;
-    }
+        function updateIconPreview() {
+            const color = document.getElementById('inputColor').value;
+            const icon = document.getElementById('inputIcon').value || '🏠';
+            document.getElementById('iconPreview').style.background = color;
+            document.getElementById('iconPreview').textContent = icon;
+        }
 
-    document.getElementById('inputIcon').addEventListener('input', updateIconPreview);
+        document.getElementById('inputIcon').addEventListener('input', updateIconPreview);
 
-    function loadImageFromUrl() {
-        const url = document.getElementById('imageUrlInput').value.trim();
-        if (!url) { alert('Nhập URL!'); return; }
-        
-        const img = new Image();
-        img.onload = function() {
-            currentImageUrl = url;
-            document.getElementById('mapImage').src = url;
-            document.querySelector('.url-section').style.display = 'none';
-            document.getElementById('mapWrapper').classList.add('active');
-            document.getElementById('mapDimensions').textContent = `${img.naturalWidth}x${img.naturalHeight}`;
-        };
-        img.onerror = () => alert('Lỗi tải ảnh!');
-        img.src = url;
-    }
+        function loadImageFromUrl() {
+            const url = document.getElementById('imageUrlInput').value.trim();
+            if (!url) { alert('Nhập URL!'); return; }
 
-    function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            if (!currentImageUrl) alert('⚠️ Nhập URL ảnh thật trước khi xuất code!');
-            const img = document.getElementById('mapImage');
-            img.src = e.target.result;
-            img.onload = () => {
+            const img = new Image();
+            img.onload = function () {
+                currentImageUrl = url;
+                document.getElementById('mapImage').src = url;
                 document.querySelector('.url-section').style.display = 'none';
                 document.getElementById('mapWrapper').classList.add('active');
                 document.getElementById('mapDimensions').textContent = `${img.naturalWidth}x${img.naturalHeight}`;
+                setTimeout(showMapHint, 800);
             };
-        };
-        reader.readAsDataURL(file);
-    }
+            img.onerror = () => alert('Lỗi tải ảnh!');
+            img.src = url;
+        }
 
-    document.getElementById('mapContainer').addEventListener('click', function(e) {
-        if (isDragging) return;
-        if (e.target.closest('.bds-hotspot')) return;
-        
-        const rect = this.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        const percentX = ((x / rect.width) * 100).toFixed(1);
-        const percentY = ((y / rect.height) * 100).toFixed(1);
-        
-        // Get current sizes
-        iconSizeDesktop = parseInt(document.getElementById('iconSizeDesktop').value) || 40;
-        iconSizeMobile = parseInt(document.getElementById('iconSizeMobile').value) || 32;
-        
-        const newPoint = {
-            id: Date.now(),
-            top: parseFloat(percentY),
-            left: parseFloat(percentX),
-            title: `${String(points.length + 1).padStart(2, '0')}`,
-            color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
-            icon: '🏠',
-            effect: 'pulse',
-            area: '',
-            price: '',
-            details: '',
-            sizeDesktop: iconSizeDesktop,
-            sizeMobile: iconSizeMobile
-        };
-        
-        points.push(newPoint);
-        renderMarker(newPoint, true);
-        selectPoint(newPoint);
-        updatePointsList();
-    });
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-    function renderMarker(point, isNew = false) {
-        const container = document.getElementById('mapContainer');
-        const existing = document.getElementById(`marker-${point.id}`);
-        if (existing) existing.remove();
-        
-        const marker = document.createElement('div');
-        marker.className = `bds-hotspot effect-${point.effect} ${isNew ? 'attention' : ''}`;
-        marker.id = `marker-${point.id}`;
-        marker.style.top = point.top + '%';
-        marker.style.left = point.left + '%';
-        marker.style.backgroundColor = point.color;
-        
-        marker.innerHTML = `
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                if (!currentImageUrl) alert('⚠️ Nhập URL ảnh thật trước khi xuất code!');
+                const img = document.getElementById('mapImage');
+                img.src = e.target.result;
+                img.onload = () => {
+                    document.querySelector('.url-section').style.display = 'none';
+                    document.getElementById('mapWrapper').classList.add('active');
+                    document.getElementById('mapDimensions').textContent = `${img.naturalWidth}x${img.naturalHeight}`;
+                    setTimeout(showMapHint, 800);
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        document.getElementById('mapContainer').addEventListener('click', function (e) {
+            if (isDragging) return;
+            if (e.target.closest('.bds-hotspot')) return;
+
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const percentX = ((x / rect.width) * 100).toFixed(1);
+            const percentY = ((y / rect.height) * 100).toFixed(1);
+
+            // Get current sizes
+            iconSizeDesktop = parseInt(document.getElementById('iconSizeDesktop').value) || 40;
+            iconSizeMobile = parseInt(document.getElementById('iconSizeMobile').value) || 32;
+
+            const newPoint = {
+                id: Date.now(),
+                top: parseFloat(percentY),
+                left: parseFloat(percentX),
+                title: `${String(points.length + 1).padStart(2, '0')}`,
+                color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
+                icon: '🏠',
+                effect: 'pulse',
+                area: '',
+                price: '',
+                details: '',
+                hintLabel: '',
+                sizeDesktop: iconSizeDesktop,
+                sizeMobile: iconSizeMobile
+            };
+
+            points.push(newPoint);
+            renderMarker(newPoint, true);
+            selectPoint(newPoint);
+            updatePointsList();
+        });
+
+        // Tính nhãn hiển thị dưới icon
+        function resolveHintLabel(point) {
+            const raw = point.hintLabel;
+            if (typeof raw === 'string') {
+                // chỉ có space → ẩn
+                if (raw.trim() === '' && raw.length > 0) return null;
+                // có nội dung thực
+                if (raw.trim() !== '') return raw.trim().substring(0, 20);
+            }
+            // để trống (undefined hoặc '') → lấy 10 ký tự đầu tên
+            return point.title ? point.title.substring(0, 10) : null;
+        }
+
+        function renderMarker(point, isNew = false) {
+            const container = document.getElementById('mapContainer');
+            const existing = document.getElementById(`marker-${point.id}`);
+            if (existing) existing.remove();
+
+            const marker = document.createElement('div');
+            marker.className = `bds-hotspot effect-${point.effect}`;
+            marker.id = `marker-${point.id}`;
+            marker.style.top = point.top + '%';
+            marker.style.left = point.left + '%';
+            marker.style.backgroundColor = point.color;
+
+            const labelText = resolveHintLabel(point);
+            marker.innerHTML = `
+            <div class="bds-tap-hint" title="Di chuột hoặc nhấn để xem chi tiết">👆</div>
             <div class="bds-hotspot-icon" style="background-color: ${point.color};">
                 ${point.icon}
             </div>
+            ${labelText ? `<div class="bds-hotspot-label">${labelText}</div>` : ''}
         `;
-        
-        marker.addEventListener('mousedown', startDrag);
-        marker.addEventListener('click', (e) => {
-            e.stopPropagation();
-            selectPoint(point);
-        });
-        
-        container.appendChild(marker);
-    }
 
-    function startDrag(e) {
-        isDragging = true;
-        draggedPoint = points.find(p => p.id === parseInt(e.currentTarget.id.split('-')[1]));
-        selectPoint(draggedPoint);
-        
-        const container = document.getElementById('mapContainer');
-        
-        function onMouseMove(e) {
-            const rect = container.getBoundingClientRect();
-            let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-            let y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
-            
-            const percentX = ((x / rect.width) * 100).toFixed(1);
-            const percentY = ((y / rect.height) * 100).toFixed(1);
-            
-            draggedPoint.left = parseFloat(percentX);
-            draggedPoint.top = parseFloat(percentY);
-            
-            const marker = document.getElementById(`marker-${draggedPoint.id}`);
-            marker.style.left = percentX + '%';
-            marker.style.top = percentY + '%';
-            
-            document.getElementById('posTop').textContent = percentY + '%';
-            document.getElementById('posLeft').textContent = percentX + '%';
+            marker.addEventListener('mousedown', startDrag);
+
+            // Click → schedule dismiss sau 5s
+            marker.addEventListener('click', (e) => {
+                e.stopPropagation();
+                scheduleDismiss();
+                selectPoint(point);
+            });
+
+            // Hover ≥3 giây → schedule dismiss sau 5s
+            marker.addEventListener('mouseenter', () => {
+                const hoverTimer = setTimeout(() => {
+                    scheduleDismiss();
+                }, 3000);
+                marker.addEventListener('mouseleave', () => clearTimeout(hoverTimer), { once: true });
+            });
+
+            container.appendChild(marker);
         }
-        
-        function onMouseUp() {
-            isDragging = false;
-            draggedPoint = null;
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
+
+        // Hẹn giờ dismiss (chỉ chạy 1 lần, delay 5s rồi thêm class ẩn badge 2s)
+        let _dismissTimer = null;
+        function scheduleDismiss() {
+            if (_dismissTimer || document.body.classList.contains('hints-dismissed')) return;
+            _dismissTimer = setTimeout(() => {
+                document.body.classList.add('hints-dismissed');
+            }, 3000);
         }
-        
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    }
 
-    function selectPoint(point) {
-        selectedPoint = point;
-        document.querySelectorAll('.bds-hotspot').forEach(m => m.style.zIndex = '');
-        document.getElementById(`marker-${point.id}`).style.zIndex = '20';
-        
-        document.getElementById('emptyState').style.display = 'none';
-        document.getElementById('pointForm').style.display = 'block';
-        
-        document.getElementById('posTop').textContent = point.top + '%';
-        document.getElementById('posLeft').textContent = point.left + '%';
-        document.getElementById('inputTitle').value = point.title;
-        document.getElementById('inputArea').value = point.area;
-        document.getElementById('inputPrice').value = point.price;
-        document.getElementById('inputDetails').value = point.details;
-        document.getElementById('inputIcon').value = point.icon;
-        document.getElementById('inputColor').value = point.color;
-        document.getElementById('inputEffect').value = point.effect;
-        document.getElementById('iconSizeDesktop').value = point.sizeDesktop || 40;
-        document.getElementById('iconSizeMobile').value = point.sizeMobile || 32;
-        
-        document.querySelectorAll('.color-swatch').forEach(s => {
-            s.classList.remove('selected');
-            if (s.dataset.color === point.color) s.classList.add('selected');
-        });
-        
-        updateIconPreview();
-        updatePointsList();
-    }
-
-    function savePoint() {
-        if (!selectedPoint) return;
-        
-        selectedPoint.title = document.getElementById('inputTitle').value;
-        selectedPoint.color = document.getElementById('inputColor').value;
-        selectedPoint.icon = document.getElementById('inputIcon').value;
-        selectedPoint.effect = document.getElementById('inputEffect').value;
-        selectedPoint.area = document.getElementById('inputArea').value;
-        selectedPoint.price = document.getElementById('inputPrice').value;
-        selectedPoint.details = document.getElementById('inputDetails').value;
-        selectedPoint.sizeDesktop = parseInt(document.getElementById('iconSizeDesktop').value) || 40;
-        selectedPoint.sizeMobile = parseInt(document.getElementById('iconSizeMobile').value) || 32;
-        
-        renderMarker(selectedPoint);
-        updatePointsList();
-        
-        const btn = event.target;
-        btn.innerHTML = '✅ Đã lưu!';
-        setTimeout(() => btn.innerHTML = '💾 Lưu', 1500);
-    }
-
-    function deleteCurrentPoint() {
-        if (!selectedPoint) return;
-        
-        points = points.filter(p => p.id !== selectedPoint.id);
-        document.getElementById(`marker-${selectedPoint.id}`).remove();
-        selectedPoint = null;
-        
-        document.getElementById('pointForm').style.display = 'none';
-        document.getElementById('emptyState').style.display = 'block';
-        updatePointsList();
-    }
-
-    function updatePointsList() {
-        const list = document.getElementById('pointsList');
-        document.getElementById('pointCount').textContent = points.length;
-        
-        if (points.length === 0) {
-            list.innerHTML = '<p style="color: var(--text-muted); font-size: 12px; text-align: center;">Chưa có điểm</p>';
-            return;
+        function showMapHint() {
+            // Gắn toast vào #mapContainer (đã có position:relative)
+            const container = document.getElementById('mapContainer');
+            if (!container) return;
+            const existing = document.getElementById('mapHintToast');
+            if (existing) existing.remove();
+            // Reset dismiss để badge và toast hiện lại mỗi lần load ảnh mới
+            document.body.classList.remove('hints-dismissed');
+            if (_dismissTimer) { clearTimeout(_dismissTimer); _dismissTimer = null; }
+            const toast = document.createElement('div');
+            toast.id = 'mapHintToast';
+            toast.innerHTML = '👆 Di chuột hoặc nhấn vào icon để xem thông tin';
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
         }
-        
-        list.innerHTML = points.map((p, idx) => `
+
+        function toggleHintLabels() {
+            const container = document.getElementById('mapContainer');
+            const btn = document.getElementById('labelToggleBtn');
+            const txt = document.getElementById('labelToggleText');
+            if (!container || !btn) return;
+            const isHidden = container.classList.toggle('labels-hidden');
+            btn.classList.toggle('off', isHidden);
+            txt.textContent = isHidden ? 'Ẩn nhãn' : 'Nhãn';
+        }
+
+        function startDrag(e) {
+            isDragging = true;
+            draggedPoint = points.find(p => p.id === parseInt(e.currentTarget.id.split('-')[1]));
+            selectPoint(draggedPoint);
+
+            const container = document.getElementById('mapContainer');
+
+            function onMouseMove(e) {
+                const rect = container.getBoundingClientRect();
+                let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+                let y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+
+                const percentX = ((x / rect.width) * 100).toFixed(1);
+                const percentY = ((y / rect.height) * 100).toFixed(1);
+
+                draggedPoint.left = parseFloat(percentX);
+                draggedPoint.top = parseFloat(percentY);
+
+                const marker = document.getElementById(`marker-${draggedPoint.id}`);
+                marker.style.left = percentX + '%';
+                marker.style.top = percentY + '%';
+
+                document.getElementById('posTop').textContent = percentY + '%';
+                document.getElementById('posLeft').textContent = percentX + '%';
+            }
+
+            function onMouseUp() {
+                isDragging = false;
+                draggedPoint = null;
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        }
+
+        function selectPoint(point) {
+            selectedPoint = point;
+            document.querySelectorAll('.bds-hotspot').forEach(m => m.style.zIndex = '');
+            document.getElementById(`marker-${point.id}`).style.zIndex = '20';
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('pointForm').style.display = 'block';
+
+            document.getElementById('posTop').textContent = point.top + '%';
+            document.getElementById('posLeft').textContent = point.left + '%';
+            document.getElementById('inputTitle').value = point.title;
+            document.getElementById('inputHintLabel').value = point.hintLabel ?? '';
+            document.getElementById('inputArea').value = point.area;
+            document.getElementById('inputPrice').value = point.price;
+            document.getElementById('inputDetails').value = point.details;
+            document.getElementById('inputIcon').value = point.icon;
+            document.getElementById('inputColor').value = point.color;
+            document.getElementById('inputEffect').value = point.effect;
+            document.getElementById('iconSizeDesktop').value = point.sizeDesktop || 40;
+            document.getElementById('iconSizeMobile').value = point.sizeMobile || 32;
+
+            document.querySelectorAll('.color-swatch').forEach(s => {
+                s.classList.remove('selected');
+                if (s.dataset.color === point.color) s.classList.add('selected');
+            });
+
+            updateIconPreview();
+            updatePointsList();
+        }
+
+        function savePoint() {
+            if (!selectedPoint) return;
+
+            selectedPoint.title = document.getElementById('inputTitle').value;
+            selectedPoint.hintLabel = document.getElementById('inputHintLabel').value;
+            selectedPoint.color = document.getElementById('inputColor').value;
+            selectedPoint.icon = document.getElementById('inputIcon').value;
+            selectedPoint.effect = document.getElementById('inputEffect').value;
+            selectedPoint.area = document.getElementById('inputArea').value;
+            selectedPoint.price = document.getElementById('inputPrice').value;
+            selectedPoint.details = document.getElementById('inputDetails').value;
+            selectedPoint.sizeDesktop = parseInt(document.getElementById('iconSizeDesktop').value) || 40;
+            selectedPoint.sizeMobile = parseInt(document.getElementById('iconSizeMobile').value) || 32;
+
+            renderMarker(selectedPoint);
+            updatePointsList();
+
+            const btn = event.target;
+            btn.innerHTML = '✅ Đã lưu!';
+            setTimeout(() => btn.innerHTML = '💾 Lưu', 1500);
+        }
+
+        function deleteCurrentPoint() {
+            if (!selectedPoint) return;
+
+            points = points.filter(p => p.id !== selectedPoint.id);
+            document.getElementById(`marker-${selectedPoint.id}`).remove();
+            selectedPoint = null;
+
+            document.getElementById('pointForm').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            updatePointsList();
+        }
+
+        function updatePointsList() {
+            const list = document.getElementById('pointsList');
+            document.getElementById('pointCount').textContent = points.length;
+
+            if (points.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted); font-size: 12px; text-align: center;">Chưa có điểm</p>';
+                return;
+            }
+
+            list.innerHTML = points.map((p, idx) => `
             <div class="point-item ${selectedPoint?.id === p.id ? 'active' : ''}" onclick="selectPointById(${p.id})">
                 <div class="point-icon" style="background: ${p.color};">${p.icon}</div>
                 <div class="point-info">
@@ -992,62 +1462,62 @@
                 <button class="delete-btn" onclick="event.stopPropagation(); deletePointById(${p.id})">🗑️</button>
             </div>
         `).join('');
-    }
+        }
 
-    function selectPointById(id) {
-        const point = points.find(p => p.id === id);
-        if (point) selectPoint(point);
-    }
+        function selectPointById(id) {
+            const point = points.find(p => p.id === id);
+            if (point) selectPoint(point);
+        }
 
-    function deletePointById(id) {
-        points = points.filter(p => p.id !== id);
-        document.getElementById(`marker-${id}`)?.remove();
-        
-        if (selectedPoint?.id === id) {
+        function deletePointById(id) {
+            points = points.filter(p => p.id !== id);
+            document.getElementById(`marker-${id}`)?.remove();
+
+            if (selectedPoint?.id === id) {
+                selectedPoint = null;
+                document.getElementById('pointForm').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+            }
+            updatePointsList();
+        }
+
+        function clearAll() {
+            if (points.length === 0) return;
+            if (!confirm(`Xóa tất cả ${points.length} điểm?`)) return;
+
+            points = [];
+            document.querySelectorAll('.bds-hotspot').forEach(m => m.remove());
             selectedPoint = null;
             document.getElementById('pointForm').style.display = 'none';
             document.getElementById('emptyState').style.display = 'block';
-        }
-        updatePointsList();
-    }
-
-    function clearAll() {
-        if (points.length === 0) return;
-        if (!confirm(`Xóa tất cả ${points.length} điểm?`)) return;
-        
-        points = [];
-        document.querySelectorAll('.bds-hotspot').forEach(m => m.remove());
-        selectedPoint = null;
-        document.getElementById('pointForm').style.display = 'none';
-        document.getElementById('emptyState').style.display = 'block';
-        updatePointsList();
-    }
-
-    function openExportModal() {
-        if (points.length === 0) { alert('Chưa có điểm!'); return; }
-
-        let imgUrl = currentImageUrl;
-        if (!imgUrl) {
-            imgUrl = prompt('Nhập URL ảnh:', 'https://example.com/map.jpg');
-            if (!imgUrl) return;
-            currentImageUrl = imgUrl;
+            updatePointsList();
         }
 
-        const includeLegend = document.getElementById('includeLegend').checked;
-        
-        // Lấy kích thước mặc định từ input chung nếu có
-        const defaultDesktop = document.getElementById('iconSizeDesktop').value || 40;
-        const defaultMobile = document.getElementById('iconSizeMobile').value || 32;
-        
-        // CSS với kích thước tùy chỉnh
-        let sizeVars = '';
-        points.forEach((p, idx) => {
-            sizeVars += `
+        function openExportModal() {
+            if (points.length === 0) { alert('Chưa có điểm!'); return; }
+
+            let imgUrl = currentImageUrl;
+            if (!imgUrl) {
+                imgUrl = prompt('Nhập URL ảnh:', 'https://example.com/map.jpg');
+                if (!imgUrl) return;
+                currentImageUrl = imgUrl;
+            }
+
+            const includeLegend = document.getElementById('includeLegend').checked;
+
+            // Lấy kích thước mặc định từ input chung nếu có
+            const defaultDesktop = document.getElementById('iconSizeDesktop').value || 40;
+            const defaultMobile = document.getElementById('iconSizeMobile').value || 32;
+
+            // CSS với kích thước tùy chỉnh
+            let sizeVars = '';
+            points.forEach((p, idx) => {
+                sizeVars += `
   --icon-size-${p.id}: ${p.sizeDesktop || defaultDesktop}px;
   --icon-size-mobile-${p.id}: ${p.sizeMobile || defaultMobile}px;`;
-        });
+            });
 
-        const effectCss = `
+            const effectCss = `
 /* Effects */
 @keyframes gentle-pulse {
   0% { transform: scale(1); opacity: 0.4; }
@@ -1122,42 +1592,55 @@
 .effect-bounce .bds-hotspot-icon { animation: bounce 0.8s ease-in-out infinite; }
 .effect-rotate .bds-hotspot-icon { animation: rotate 3s linear infinite; }`;
 
-        let hotspotsHtml = '';
-        points.forEach((p, i) => {
-            const edgeClass = p.left < 30 ? 'edge-left' : (p.left > 70 ? 'edge-right' : '');
-            const sizeDesktop = p.sizeDesktop || defaultDesktop;
-            const sizeMobile = p.sizeMobile || defaultMobile;
-            
-            hotspotsHtml += `
+            // Helper tính label
+            function resolveLabel(p) {
+                const raw = p.hintLabel;
+                if (typeof raw === 'string') {
+                    if (raw.trim() === '' && raw.length > 0) return null; // chỉ spaces → ẩn
+                    if (raw.trim() !== '') return raw.trim().substring(0, 20); // có nội dung
+                }
+                return p.title ? p.title.substring(0, 10) : null; // fallback
+            }
+
+            let hotspotsHtml = '';
+            points.forEach((p, i) => {
+                const edgeClass = p.left < 30 ? 'edge-left' : (p.left > 70 ? 'edge-right' : '');
+                const sizeDesktop = p.sizeDesktop || defaultDesktop;
+                const sizeMobile = p.sizeMobile || defaultMobile;
+                const exportLabel = resolveLabel(p);
+
+                hotspotsHtml += `
     <div class="bds-hotspot effect-${p.effect} ${edgeClass}" 
          id="hotspot-${p.id}"
          style="top:${p.top}%;left:${p.left}%;--spot-color:${p.color};--icon-size:${sizeDesktop}px;--icon-size-mobile:${sizeMobile}px;">
+      <div class="bds-tap-hint" aria-hidden="true">👆</div>
       <div class="bds-hotspot-icon" style="background:${p.color};width:var(--icon-size);height:var(--icon-size);font-size:calc(var(--icon-size)*0.35);">${p.icon}</div>
+      ${exportLabel ? `<div class="bds-hotspot-label">${exportLabel}</div>` : ''}
       <div class="bds-tooltip">
         <h4 style="border-color:${p.color};">${p.title}</h4>
         <div class="bds-tooltip-info">
 ${p.area ? `          <span>📐 Diện tích: ${p.area}</span>\n` : ''}${p.price ? `          <span>💰 Giá: ${p.price}</span>\n` : ''}${p.details ? `          <span>ℹ️ ${p.details}</span>\n` : ''}        </div>
       </div>
     </div>`;
-        });
-
-        let legendHtml = '';
-        let legendCss = '';
-        let legendJs = '';
-        
-        if (includeLegend) {
-            // Tạo legend với data-target để link với hotspot
-            const uniqueItems = [];
-            const seen = new Set();
-            points.forEach(p => {
-                const key = `${p.color}-${p.icon}-${p.title}`;
-                if (!seen.has(key)) {
-                    seen.add(key);
-                    uniqueItems.push(p);
-                }
             });
 
-            legendHtml = `
+            let legendHtml = '';
+            let legendCss = '';
+            let legendJs = '';
+
+            if (includeLegend) {
+                // Tạo legend với data-target để link với hotspot
+                const uniqueItems = [];
+                const seen = new Set();
+                points.forEach(p => {
+                    const key = `${p.color}-${p.icon}-${p.title}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        uniqueItems.push(p);
+                    }
+                });
+
+                legendHtml = `
 <!-- Legend - Click để tìm vị trí -->
 <div class="bds-legend" id="bdsLegend">
 ${uniqueItems.map(p => `  <div class="bds-legend-item" data-target="hotspot-${p.id}">
@@ -1167,7 +1650,7 @@ ${uniqueItems.map(p => `  <div class="bds-legend-item" data-target="hotspot-${p.
   </div>`).join('\n')}
 </div>`;
 
-            legendCss = `
+                legendCss = `
 .bds-legend {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1238,8 +1721,8 @@ ${uniqueItems.map(p => `  <div class="bds-legend-item" data-target="hotspot-${p.
   .legend-hint { display: none; }
 }`;
 
-            // JavaScript cho tương tác legend
-            legendJs = `
+                // JavaScript cho tương tác legend
+                legendJs = `
   // Legend interaction - Click to find hotspot
   document.querySelectorAll('.bds-legend-item').forEach(function(item) {
     item.addEventListener('click', function() {
@@ -1268,9 +1751,9 @@ ${uniqueItems.map(p => `  <div class="bds-legend-item" data-target="hotspot-${p.
       }
     });
   });`;
-        }
+            }
 
-        const fullCode = `<!-- BDS Interactive Map - Legend Zoom Feature -->
+            const fullCode = `<!-- BDS Interactive Map - Legend Zoom Feature -->
 <style>
 .bds-map-wrapper {
   position: relative;
@@ -1329,6 +1812,169 @@ ${uniqueItems.map(p => `  <div class="bds-legend-item" data-target="hotspot-${p.
 }
 
 ${effectCss}
+
+/* Tap hint badge */
+@keyframes bds-tap-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.2); }
+}
+
+.bds-tap-hint {
+  position: absolute;
+  top: 50%;
+  margin-top: -9px;
+  right: -10px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  animation: bds-tap-bounce 1.4s ease-in-out infinite;
+  z-index: 15;
+  pointer-events: none;
+  border: 1.5px solid rgba(0,0,0,0.08);
+  /* Mờ mặc định */
+  opacity: 0.8;
+  transition: opacity 2s;
+}
+
+/* Ẩn sau khi người dùng đã tương tác */
+body.bds-hints-dismissed .bds-tap-hint {
+  opacity: 0 !important;
+  animation: none;
+}
+
+/* Label tên ngắn bên dưới icon */
+.bds-hotspot-label {
+  position: absolute;
+  top: calc(var(--icon-size, 40px) + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0,0,0,0.6);
+  padding: 2px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 15;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.bds-hotspot:hover .bds-hotspot-label,
+.bds-hotspot.active .bds-hotspot-label {
+  opacity: 0;
+}
+
+/* Ẩn nhãn khi toggle off */
+.bds-labels-hidden .bds-hotspot-label {
+  opacity: 0 !important;
+  transform: translateX(-50%) translateY(4px);
+  pointer-events: none;
+}
+
+/* Nút toggle nhãn */
+.bds-label-toggle {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 40;
+  background: rgba(255,255,255,0.92);
+  border: 1.5px solid rgba(0,0,0,0.12);
+  border-radius: 20px;
+  padding: 5px 10px 5px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4f46e5;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  backdrop-filter: blur(4px);
+  transition: all 0.2s;
+  user-select: none;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+.bds-label-toggle:hover {
+  background: #eef2ff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.bds-label-toggle.off {
+  color: #9ca3af;
+  border-color: rgba(0,0,0,0.08);
+}
+.bds-label-toggle .bds-toggle-dot {
+  width: 28px;
+  height: 16px;
+  background: #4f46e5;
+  border-radius: 8px;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.bds-label-toggle .bds-toggle-dot::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 14px;
+  transition: left 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.bds-label-toggle.off .bds-toggle-dot {
+  background: #d1d5db;
+}
+.bds-label-toggle.off .bds-toggle-dot::after {
+  left: 2px;
+}
+
+/* First-use hint toast */
+@keyframes bds-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes bds-toast-out {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to   { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+}
+
+.bds-hint-toast {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.72);
+  color: #fff;
+  font-size: 12px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 50;
+  animation: bds-toast-in 0.4s ease forwards;
+  pointer-events: none;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.bds-hint-toast.hiding {
+  animation: bds-toast-out 0.4s ease forwards;
+}
 
 /* Tooltip z-index: 30 */
 .bds-tooltip {
@@ -1400,6 +2046,11 @@ ${effectCss}
     height: var(--icon-size-mobile, 32px);
     border-width: 2px;
   }
+  .bds-hotspot-label {
+    top: calc(var(--icon-size-mobile, 32px) + 2px);
+    font-size: 9px;
+    padding: 1px 5px;
+  }
   .bds-tooltip {
     width: calc(100vw - 40px);
     max-width: 260px;
@@ -1412,34 +2063,68 @@ ${effectCss}
 ${legendCss}
 </style>
 
-<div class="bds-map-wrapper" id="bdsProjectMap">
-  <img src="${imgUrl}" alt="Mặt bằng dự án">
+<div class="bds-map-wrapper" id="bdsProjectMap" style="position:relative;">
+  <img src="${imgUrl}" alt="M\u1eb7t b\u1eb1ng d\u1ef1 \u00e1n">
   ${hotspotsHtml}
+  <!-- N\u00fat t\u1eaft/b\u1eadt nh\u00e3n g\u1ee3i \u00fd -->
+  <button class="bds-label-toggle" id="bdsLabelToggle" onclick="bdsToggleLabels()" title="B\u1eadt/t\u1eaft nh\u00e3n g\u1ee3i \u00fd">
+    <span class="bds-toggle-dot"></span>
+    <span id="bdsLabelToggleTxt">\ud83c\udff7\ufe0f Nh\u00e3n</span>
+  </button>
 </div>
 ${legendHtml}
 
 <script>
 (function() {
-  // Hotspot click handler
+  // Toggle nhãn gợi ý
+  window.bdsToggleLabels = function() {
+    var wrapper = document.getElementById('bdsProjectMap');
+    var btn = document.getElementById('bdsLabelToggle');
+    var txt = document.getElementById('bdsLabelToggleTxt');
+    if (!wrapper || !btn) return;
+    var isHidden = wrapper.classList.toggle('bds-labels-hidden');
+    btn.classList.toggle('off', isHidden);
+    txt.textContent = isHidden ? '\ud83c\udff7\ufe0f Ẩn nhãn' : '\ud83c\udff7\ufe0f Nhãn';
+  };
+
   var hotspots = document.querySelectorAll('.bds-hotspot');
-  
+
+  // Schedule dismiss: chờ 5s rồi thêm class, CSS sẽ fade 2s
+  var _dismissTimer = null;
+  function scheduleDismiss() {
+    if (_dismissTimer || document.body.classList.contains('bds-hints-dismissed')) return;
+    _dismissTimer = setTimeout(function() {
+      document.body.classList.add('bds-hints-dismissed');
+    }, 3000);
+  }
+
   hotspots.forEach(function(hotspot) {
+    // Click → trigger dismiss (delay 5s)
     hotspot.addEventListener('click', function(e) {
       e.stopPropagation();
+      scheduleDismiss();
       var isActive = this.classList.contains('active');
-      
       hotspots.forEach(function(h) {
         h.classList.remove('active');
         h.style.zIndex = '10';
       });
-      
       if (!isActive) {
         this.classList.add('active');
         this.style.zIndex = '20';
       }
     });
+
+    // Hover ≥3 giây → trigger dismiss (delay 5s)
+    hotspot.addEventListener('mouseenter', function() {
+      var hoverTimer = setTimeout(function() {
+        scheduleDismiss();
+      }, 3000);
+      hotspot.addEventListener('mouseleave', function() {
+        clearTimeout(hoverTimer);
+      }, { once: true });
+    });
   });
-  
+
   // Click outside to close
   document.addEventListener('click', function(e) {
     if (!e.target.closest('.bds-hotspot')) {
@@ -1449,170 +2134,191 @@ ${legendHtml}
       });
     }
   });
-  
+
+  // First-use hint toast (xuất hiện khi load trang, tự ẩn sau 4s)
+  (function() {
+    var wrapper = document.getElementById('bdsProjectMap');
+    if (!wrapper) return;
+    wrapper.style.position = 'relative';
+    var toast = document.createElement('div');
+    toast.className = 'bds-hint-toast';
+    toast.innerHTML = '👆 Di chuột hoặc nhấn vào icon để xem thông tin';
+    wrapper.appendChild(toast);
+    setTimeout(function() {
+      toast.classList.add('hiding');
+      setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
+    }, 4000);
+  })();
+
   ${legendJs}
 })();
 <\/script>`;
-        
-        document.getElementById('codeWp').textContent = fullCode;
-        document.getElementById('codeJson').textContent = JSON.stringify(points, null, 2);
-        document.getElementById('exportModal').classList.add('active');
-    }
 
-    function closeExportModal() {
-        document.getElementById('exportModal').classList.remove('active');
-    }
-
-    function switchTab(tab) {
-        document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
-        document.getElementById('code' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
-    }
-
-    function copyCode(btn) {
-        const activeBlock = document.querySelector('.code-block.active');
-        navigator.clipboard.writeText(activeBlock.textContent).then(() => {
-            if (btn) {
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ Đã copy!';
-                setTimeout(() => btn.innerHTML = originalText, 2000);
-            }
-        }).catch(err => {
-            alert('Lỗi copy: ' + err);
-        });
-    }
-
-    function openImportModal() {
-        document.getElementById('importCodeInput').value = '';
-        document.getElementById('importModal').classList.add('active');
-    }
-
-    function closeImportModal() {
-        document.getElementById('importModal').classList.remove('active');
-    }
-
-    function processImportCode() {
-        const text = document.getElementById('importCodeInput').value.trim();
-        if (!text) {
-            alert('Vui lòng dán mã vào!');
-            return;
+            document.getElementById('codeWp').textContent = fullCode;
+            document.getElementById('codeJson').textContent = JSON.stringify(points, null, 2);
+            document.getElementById('exportModal').classList.add('active');
         }
 
-        if (points.length > 0) {
-            if (!confirm('Dữ liệu mới sẽ nạp đè lên các điểm hiện tại. Bạn có chắc chắn?')) return;
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
         }
 
-        try {
-            const parsed = JSON.parse(text);
-            if (Array.isArray(parsed)) {
-                applyImportedPoints(parsed);
+        function switchTab(tab) {
+            document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('code' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+        }
+
+        function copyCode(btn) {
+            const activeBlock = document.querySelector('.code-block.active');
+            navigator.clipboard.writeText(activeBlock.textContent).then(() => {
+                if (btn) {
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '✅ Đã copy!';
+                    setTimeout(() => btn.innerHTML = originalText, 2000);
+                }
+            }).catch(err => {
+                alert('Lỗi copy: ' + err);
+            });
+        }
+
+        function openImportModal() {
+            document.getElementById('importCodeInput').value = '';
+            document.getElementById('importModal').classList.add('active');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('active');
+        }
+
+        function processImportCode() {
+            const text = document.getElementById('importCodeInput').value.trim();
+            if (!text) {
+                alert('Vui lòng dán mã vào!');
                 return;
             }
-        } catch (e) {
-            // Not JSON
+
+            if (points.length > 0) {
+                if (!confirm('Dữ liệu mới sẽ nạp đè lên các điểm hiện tại. Bạn có chắc chắn?')) return;
+            }
+
+            try {
+                const parsed = JSON.parse(text);
+                if (Array.isArray(parsed)) {
+                    applyImportedPoints(parsed);
+                    return;
+                }
+            } catch (e) {
+                // Not JSON
+            }
+
+            importHTMLCode(text);
         }
 
-        importHTMLCode(text);
-    }
+        function importHTMLCode(html) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
 
-    function importHTMLCode(html) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        const wrapper = doc.querySelector('.bds-map-wrapper');
-        if (!wrapper) {
-            alert('Không tìm thấy cấu trúc bản đồ trong mã HTML!');
-            return;
-        }
-        
-        const imgEl = wrapper.querySelector('img');
-        let bgUrl = imgEl ? imgEl.getAttribute('src') : '';
-        // If image source is empty but there's a url, fallback to current or empty
-        if (!bgUrl) bgUrl = currentImageUrl;
-        
-        const newPoints = [];
-        const hotspots = wrapper.querySelectorAll('.bds-hotspot');
-        
-        hotspots.forEach((spot, index) => {
-            const topStr = spot.style.top || '0%';
-            const leftStr = spot.style.left || '0%';
-            const colorStr = spot.style.getPropertyValue('--spot-color').trim() || '#4f46e5';
-            const sizeDesktopStr = spot.style.getPropertyValue('--icon-size').trim() || '40';
-            const sizeMobileStr = spot.style.getPropertyValue('--icon-size-mobile').trim() || '32';
+            const wrapper = doc.querySelector('.bds-map-wrapper');
+            if (!wrapper) {
+                alert('Không tìm thấy cấu trúc bản đồ trong mã HTML!');
+                return;
+            }
 
-            const top = parseFloat(topStr);
-            const left = parseFloat(leftStr);
-            const sizeDesktop = parseInt(sizeDesktopStr, 10) || 40;
-            const sizeMobile = parseInt(sizeMobileStr, 10) || 32;
+            const imgEl = wrapper.querySelector('img');
+            let bgUrl = imgEl ? imgEl.getAttribute('src') : '';
+            // If image source is empty but there's a url, fallback to current or empty
+            if (!bgUrl) bgUrl = currentImageUrl;
 
-            let idStr = spot.getAttribute('id');
-            let idNum = idStr ? parseInt(idStr.replace('hotspot-', ''), 10) : Date.now() + index;
-            if (isNaN(idNum)) idNum = Date.now() + index;
+            const newPoints = [];
+            const hotspots = wrapper.querySelectorAll('.bds-hotspot');
 
-            let effect = 'none';
-            spot.classList.forEach(cls => {
-                if (cls.startsWith('effect-')) effect = cls.replace('effect-', '');
+            hotspots.forEach((spot, index) => {
+                const topStr = spot.style.top || '0%';
+                const leftStr = spot.style.left || '0%';
+                const colorStr = spot.style.getPropertyValue('--spot-color').trim() || '#4f46e5';
+                const sizeDesktopStr = spot.style.getPropertyValue('--icon-size').trim() || '40';
+                const sizeMobileStr = spot.style.getPropertyValue('--icon-size-mobile').trim() || '32';
+
+                const top = parseFloat(topStr);
+                const left = parseFloat(leftStr);
+                const sizeDesktop = parseInt(sizeDesktopStr, 10) || 40;
+                const sizeMobile = parseInt(sizeMobileStr, 10) || 32;
+
+                let idStr = spot.getAttribute('id');
+                let idNum = idStr ? parseInt(idStr.replace('hotspot-', ''), 10) : Date.now() + index;
+                if (isNaN(idNum)) idNum = Date.now() + index;
+
+                let effect = 'none';
+                spot.classList.forEach(cls => {
+                    if (cls.startsWith('effect-')) effect = cls.replace('effect-', '');
+                });
+
+                const iconDiv = spot.querySelector('.bds-hotspot-icon');
+                const icon = iconDiv ? iconDiv.textContent.trim() : '🏠';
+
+                const titleEl = spot.querySelector('.bds-tooltip h4');
+                const title = titleEl ? titleEl.textContent.trim() : `Điểm ${index + 1}`;
+
+                let area = '', price = '', details = '';
+                const spans = spot.querySelectorAll('.bds-tooltip-info span');
+                spans.forEach(span => {
+                    const txt = span.textContent.trim();
+                    if (txt.startsWith('📐 Diện tích:')) area = txt.replace('📐 Diện tích:', '').trim();
+                    else if (txt.startsWith('💰 Giá:')) price = txt.replace('💰 Giá:', '').trim();
+                    else if (txt.startsWith('ℹ️')) details = txt.replace('ℹ️', '').trim();
+                });
+
+                // import hintLabel nếu có từ data-hint attribute hoặc text của .bds-hotspot-label
+                let hintLabel = '';
+                const hintLabelEl = spot.querySelector('.bds-hotspot-label');
+                if (hintLabelEl) hintLabel = hintLabelEl.textContent.trim();
+
+                newPoints.push({
+                    id: idNum, top, left, color: colorStr, icon, effect, title, area, price, details, hintLabel, sizeDesktop, sizeMobile
+                });
             });
 
-            const iconDiv = spot.querySelector('.bds-hotspot-icon');
-            const icon = iconDiv ? iconDiv.textContent.trim() : '🏠';
-
-            const titleEl = spot.querySelector('.bds-tooltip h4');
-            const title = titleEl ? titleEl.textContent.trim() : `Điểm ${index + 1}`;
-
-            let area = '', price = '', details = '';
-            const spans = spot.querySelectorAll('.bds-tooltip-info span');
-            spans.forEach(span => {
-                const txt = span.textContent.trim();
-                if (txt.startsWith('📐 Diện tích:')) area = txt.replace('📐 Diện tích:', '').trim();
-                else if (txt.startsWith('💰 Giá:')) price = txt.replace('💰 Giá:', '').trim();
-                else if (txt.startsWith('ℹ️')) details = txt.replace('ℹ️', '').trim();
-            });
-
-            newPoints.push({
-                id: idNum, top, left, color: colorStr, icon, effect, title, area, price, details, sizeDesktop, sizeMobile
-            });
-        });
-        
-        if (bgUrl && bgUrl !== currentImageUrl) {
-            document.getElementById('imageUrlInput').value = bgUrl;
-            const img = new Image();
-            img.onload = function() {
-                currentImageUrl = bgUrl;
-                document.getElementById('mapImage').src = bgUrl;
-                document.querySelector('.url-section').style.display = 'none';
-                document.getElementById('mapWrapper').classList.add('active');
-                document.getElementById('mapDimensions').textContent = `${img.naturalWidth}x${img.naturalHeight}`;
+            if (bgUrl && bgUrl !== currentImageUrl) {
+                document.getElementById('imageUrlInput').value = bgUrl;
+                const img = new Image();
+                img.onload = function () {
+                    currentImageUrl = bgUrl;
+                    document.getElementById('mapImage').src = bgUrl;
+                    document.querySelector('.url-section').style.display = 'none';
+                    document.getElementById('mapWrapper').classList.add('active');
+                    document.getElementById('mapDimensions').textContent = `${img.naturalWidth}x${img.naturalHeight}`;
+                    applyImportedPoints(newPoints);
+                };
+                img.onerror = () => {
+                    alert('Lỗi tải ảnh từ URL trong mã HTML! Đã khôi phục điểm trên ảnh hiện tại.');
+                    applyImportedPoints(newPoints);
+                };
+                img.src = bgUrl;
+            } else {
                 applyImportedPoints(newPoints);
-            };
-            img.onerror = () => {
-                alert('Lỗi tải ảnh từ URL trong mã HTML! Đã khôi phục điểm trên ảnh hiện tại.');
-                applyImportedPoints(newPoints);
-            };
-            img.src = bgUrl;
-        } else {
-            applyImportedPoints(newPoints);
+            }
         }
-    }
 
-    function applyImportedPoints(newPoints) {
-        document.querySelectorAll('.bds-hotspot').forEach(m => m.remove());
-        points = newPoints;
-        points.forEach(p => renderMarker(p, false));
-        updatePointsList();
-        
-        selectedPoint = null;
-        document.getElementById('pointForm').style.display = 'none';
-        document.getElementById('emptyState').style.display = 'block';
+        function applyImportedPoints(newPoints) {
+            document.querySelectorAll('.bds-hotspot').forEach(m => m.remove());
+            points = newPoints;
+            points.forEach(p => renderMarker(p, false));
+            updatePointsList();
 
-        closeImportModal();
-        alert(`Đã nhập thành công ${points.length} điểm!`);
-    }
+            selectedPoint = null;
+            document.getElementById('pointForm').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
 
-    initColorGrid();
-    selectColor(colorPalette[0], document.querySelector('.color-swatch'));
-</script>
+            closeImportModal();
+            alert(`Đã nhập thành công ${points.length} điểm!`);
+        }
+
+        initColorGrid();
+        selectColor(colorPalette[0], document.querySelector('.color-swatch'));
+    </script>
 
 </body>
+
 </html>
