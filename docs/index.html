@@ -553,6 +553,7 @@
         <div class="logo">🏢 BDS Map Builder - Legend Zoom</div>
         <div style="display: flex; gap: 8px;">
             <button class="btn btn-secondary" onclick="clearAll()">🗑️ Xóa tất cả</button>
+            <button class="btn btn-primary" onclick="openImportModal()" style="background: #eab308; color: #fff;">📥 Nhập code</button>
             <button class="btn btn-success" onclick="openExportModal()">📤 Xuất code</button>
         </div>
     </header>
@@ -683,6 +684,22 @@
     </aside>
 </div>
 
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>📥 Nhập code để chỉnh sửa tiếp</h3>
+            <button class="btn btn-secondary" onclick="closeImportModal()" style="width: 32px; height: 32px; padding: 0;">✕</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 12px; font-size: 13px; color: var(--text-muted);">Dán đoạn mã HTML (WordPress) hoặc dữ liệu JSON bạn đã xuất trước đó vào đây:</p>
+            <textarea id="importCodeInput" class="form-textarea" style="height: 200px; font-family: monospace; white-space: pre-wrap; word-break: break-all;" placeholder="Dán code HTML hoặc JSON..."></textarea>
+            
+            <button class="btn btn-primary" style="margin-top: 16px; width: 100%;" onclick="processImportCode()">📥 Xử lý & Nhập</button>
+        </div>
+    </div>
+</div>
+
 <!-- Export Modal -->
 <div class="modal-overlay" id="exportModal">
     <div class="modal">
@@ -706,7 +723,7 @@
             <div class="code-block active" id="codeWp"></div>
             <div class="code-block" id="codeJson"></div>
 
-            <button class="btn btn-success" style="margin-top: 16px; width: 100%;" onclick="copyCode()">📋 Copy code</button>
+            <button class="btn btn-success" style="margin-top: 16px; width: 100%;" onclick="copyCode(this)">📋 Copy code</button>
         </div>
     </div>
 </div>
@@ -1453,13 +1470,144 @@ ${legendHtml}
         document.getElementById('code' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
     }
 
-    function copyCode() {
+    function copyCode(btn) {
         const activeBlock = document.querySelector('.code-block.active');
         navigator.clipboard.writeText(activeBlock.textContent).then(() => {
-            const btn = event.target;
-            btn.innerHTML = '✅ Đã copy!';
-            setTimeout(() => btn.innerHTML = '📋 Copy code', 2000);
+            if (btn) {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Đã copy!';
+                setTimeout(() => btn.innerHTML = originalText, 2000);
+            }
+        }).catch(err => {
+            alert('Lỗi copy: ' + err);
         });
+    }
+
+    function openImportModal() {
+        document.getElementById('importCodeInput').value = '';
+        document.getElementById('importModal').classList.add('active');
+    }
+
+    function closeImportModal() {
+        document.getElementById('importModal').classList.remove('active');
+    }
+
+    function processImportCode() {
+        const text = document.getElementById('importCodeInput').value.trim();
+        if (!text) {
+            alert('Vui lòng dán mã vào!');
+            return;
+        }
+
+        if (points.length > 0) {
+            if (!confirm('Dữ liệu mới sẽ nạp đè lên các điểm hiện tại. Bạn có chắc chắn?')) return;
+        }
+
+        try {
+            const parsed = JSON.parse(text);
+            if (Array.isArray(parsed)) {
+                applyImportedPoints(parsed);
+                return;
+            }
+        } catch (e) {
+            // Not JSON
+        }
+
+        importHTMLCode(text);
+    }
+
+    function importHTMLCode(html) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        const wrapper = doc.querySelector('.bds-map-wrapper');
+        if (!wrapper) {
+            alert('Không tìm thấy cấu trúc bản đồ trong mã HTML!');
+            return;
+        }
+        
+        const imgEl = wrapper.querySelector('img');
+        let bgUrl = imgEl ? imgEl.getAttribute('src') : '';
+        // If image source is empty but there's a url, fallback to current or empty
+        if (!bgUrl) bgUrl = currentImageUrl;
+        
+        const newPoints = [];
+        const hotspots = wrapper.querySelectorAll('.bds-hotspot');
+        
+        hotspots.forEach((spot, index) => {
+            const topStr = spot.style.top || '0%';
+            const leftStr = spot.style.left || '0%';
+            const colorStr = spot.style.getPropertyValue('--spot-color').trim() || '#4f46e5';
+            const sizeDesktopStr = spot.style.getPropertyValue('--icon-size').trim() || '40';
+            const sizeMobileStr = spot.style.getPropertyValue('--icon-size-mobile').trim() || '32';
+
+            const top = parseFloat(topStr);
+            const left = parseFloat(leftStr);
+            const sizeDesktop = parseInt(sizeDesktopStr, 10) || 40;
+            const sizeMobile = parseInt(sizeMobileStr, 10) || 32;
+
+            let idStr = spot.getAttribute('id');
+            let idNum = idStr ? parseInt(idStr.replace('hotspot-', ''), 10) : Date.now() + index;
+            if (isNaN(idNum)) idNum = Date.now() + index;
+
+            let effect = 'none';
+            spot.classList.forEach(cls => {
+                if (cls.startsWith('effect-')) effect = cls.replace('effect-', '');
+            });
+
+            const iconDiv = spot.querySelector('.bds-hotspot-icon');
+            const icon = iconDiv ? iconDiv.textContent.trim() : '🏠';
+
+            const titleEl = spot.querySelector('.bds-tooltip h4');
+            const title = titleEl ? titleEl.textContent.trim() : `Điểm ${index + 1}`;
+
+            let area = '', price = '', details = '';
+            const spans = spot.querySelectorAll('.bds-tooltip-info span');
+            spans.forEach(span => {
+                const txt = span.textContent.trim();
+                if (txt.startsWith('📐 Diện tích:')) area = txt.replace('📐 Diện tích:', '').trim();
+                else if (txt.startsWith('💰 Giá:')) price = txt.replace('💰 Giá:', '').trim();
+                else if (txt.startsWith('ℹ️')) details = txt.replace('ℹ️', '').trim();
+            });
+
+            newPoints.push({
+                id: idNum, top, left, color: colorStr, icon, effect, title, area, price, details, sizeDesktop, sizeMobile
+            });
+        });
+        
+        if (bgUrl && bgUrl !== currentImageUrl) {
+            document.getElementById('imageUrlInput').value = bgUrl;
+            const img = new Image();
+            img.onload = function() {
+                currentImageUrl = bgUrl;
+                document.getElementById('mapImage').src = bgUrl;
+                document.querySelector('.url-section').style.display = 'none';
+                document.getElementById('mapWrapper').classList.add('active');
+                document.getElementById('mapDimensions').textContent = `${img.naturalWidth}x${img.naturalHeight}`;
+                applyImportedPoints(newPoints);
+            };
+            img.onerror = () => {
+                alert('Lỗi tải ảnh từ URL trong mã HTML! Đã khôi phục điểm trên ảnh hiện tại.');
+                applyImportedPoints(newPoints);
+            };
+            img.src = bgUrl;
+        } else {
+            applyImportedPoints(newPoints);
+        }
+    }
+
+    function applyImportedPoints(newPoints) {
+        document.querySelectorAll('.bds-hotspot').forEach(m => m.remove());
+        points = newPoints;
+        points.forEach(p => renderMarker(p, false));
+        updatePointsList();
+        
+        selectedPoint = null;
+        document.getElementById('pointForm').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+
+        closeImportModal();
+        alert(`Đã nhập thành công ${points.length} điểm!`);
     }
 
     initColorGrid();
