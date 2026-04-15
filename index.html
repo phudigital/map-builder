@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BDS Map Builder - Legend Interactive</title>
+    <title>Real Estate Map Visual Builder</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234f46e5'/%3E%3Cpath d='M16 46V22l16-10 16 10v24H16Z' fill='white' opacity='.95'/%3E%3Ccircle cx='32' cy='33' r='7' fill='%234f46e5'/%3E%3Cpath d='M32 23v20M22 33h20' stroke='white' stroke-width='3' stroke-linecap='round' opacity='.9'/%3E%3C/svg%3E">
     <style>
         * {
             margin: 0;
@@ -20,7 +22,8 @@
             --panel: #ffffff;
             --border: #e5e7eb;
             --text: #1f2937;
-            --header-height: 72px;
+            --header-height: 84px;
+            --bottom-toolbar-height: 86px;
         }
 
         body {
@@ -54,10 +57,24 @@
         }
 
         .logo {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex-shrink: 0;
+            min-width: 0;
+        }
+
+        .logo-title {
             font-size: 18px;
             font-weight: 700;
             color: var(--primary);
-            flex-shrink: 0;
+            line-height: 1.15;
+        }
+
+        .logo-meta {
+            font-size: 11px;
+            color: #6b7280;
+            line-height: 1.2;
         }
 
         .header-controls {
@@ -69,13 +86,23 @@
         }
 
         .header-export-settings {
+            position: fixed;
+            left: 20px;
+            right: 20px;
+            bottom: 16px;
+            z-index: 120;
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 12px;
+            row-gap: 8px;
             padding: 8px 12px;
-            background: #f9fafb;
+            background: rgba(249, 250, 251, 0.96);
             border: 1px solid var(--border);
-            border-radius: 999px;
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+            backdrop-filter: blur(10px);
         }
 
         .header-toggle {
@@ -193,7 +220,7 @@
 
         .main-content {
             margin-top: var(--header-height);
-            padding: 20px;
+            padding: 20px 20px calc(var(--bottom-toolbar-height) + 24px);
             overflow-y: auto;
             height: calc(100vh - var(--header-height));
         }
@@ -254,9 +281,189 @@
             height: auto;
             display: block;
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             position: relative;
             z-index: 1;
+        }
+
+        .map-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .map-mode-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .map-mode-btn {
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(79, 70, 229, 0.18);
+            background: white;
+            color: #4338ca;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .map-mode-btn:hover {
+            background: #eef2ff;
+        }
+
+        .map-mode-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.24);
+        }
+
+        .map-mode-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .map-mode-btn.warn {
+            color: #be185d;
+            border-color: rgba(190, 24, 93, 0.18);
+        }
+
+        .map-mode-btn.warn:hover {
+            background: #fdf2f8;
+        }
+
+        .map-mode-hint {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .map-image-url-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .map-image-url-input {
+            flex: 1;
+            min-width: 180px;
+            padding: 7px 10px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 12px;
+            outline: none;
+            background: white;
+        }
+
+        .map-image-url-btn {
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(79, 70, 229, 0.18);
+            background: white;
+            color: #4338ca;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .map-image-url-btn:hover {
+            background: #eef2ff;
+        }
+
+        .bds-map-preview.mode-route-click,
+        .bds-map-preview.mode-route-freehand {
+            cursor: crosshair;
+        }
+
+        .bds-routes-layer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        .bds-route-group {
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+        .bds-route-glow,
+        .bds-route-core,
+        .bds-route-flow {
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .bds-route-glow {
+            stroke: color-mix(in srgb, var(--route-color, #ff6cb7) 55%, white 10%);
+            stroke-width: var(--route-glow, 2.6);
+            opacity: 0.36;
+            filter: drop-shadow(0 0 12px rgba(255, 108, 183, 0.34));
+        }
+
+        .bds-route-core {
+            stroke: var(--route-color, #ff6cb7);
+            stroke-width: var(--route-width, 0.8);
+        }
+
+        .bds-route-flow {
+            stroke: color-mix(in srgb, var(--route-color, #ff6cb7) 35%, white 65%);
+            stroke-width: calc(var(--route-width, 0.8) * 0.42);
+            stroke-dasharray: var(--route-dash-length, 3) var(--route-dash-gap, 2.8);
+            animation: route-dash-flow var(--route-flow-speed, 2.8s) linear infinite;
+        }
+
+        .bds-route-group[data-route-animation="brand-flow-soft"] .bds-route-glow {
+            opacity: 0.24;
+            filter: drop-shadow(0 0 8px rgba(255, 108, 183, 0.2));
+        }
+
+        .bds-route-group[data-route-animation="brand-flow-soft"] .bds-route-flow {
+            opacity: 0.9;
+        }
+
+        .bds-route-label {
+            fill: #ffe2f1;
+            font-size: 2.2px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            paint-order: stroke;
+            stroke: rgba(10, 18, 35, 0.55);
+            stroke-width: 0.22;
+            pointer-events: none;
+        }
+
+        .bds-route-group.route-selected .bds-route-glow {
+            opacity: 0.55;
+        }
+
+        .bds-route-group.route-selected .bds-route-core {
+            stroke-width: calc(var(--route-width, 0.8) + 0.1);
+        }
+
+        .bds-route-group.route-draft .bds-route-core,
+        .bds-route-group.route-draft .bds-route-flow {
+            stroke-dasharray: 1.6 1.4;
+            animation-duration: 1.5s;
+        }
+
+        @keyframes route-dash-flow {
+            to {
+                stroke-dashoffset: -18;
+            }
         }
 
         .bds-hotspot {
@@ -423,7 +630,15 @@
             animation: heartbeat 1.5s ease-in-out infinite;
         }
 
+        .effect-heartbeat .bds-polygon-icon {
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
         .effect-shake .bds-hotspot-icon {
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        .effect-shake .bds-polygon-icon {
             animation: shake 0.5s ease-in-out infinite;
         }
 
@@ -431,11 +646,23 @@
             animation: blink 1s ease-in-out infinite;
         }
 
+        .effect-blink .bds-polygon-icon {
+            animation: blink 1s ease-in-out infinite;
+        }
+
         .effect-bounce .bds-hotspot-icon {
             animation: bounce 0.8s ease-in-out infinite;
         }
 
+        .effect-bounce .bds-polygon-icon {
+            animation: bounce 0.8s ease-in-out infinite;
+        }
+
         .effect-rotate .bds-hotspot-icon {
+            animation: rotate 3s linear infinite;
+        }
+
+        .effect-rotate .bds-polygon-icon {
             animation: rotate 3s linear infinite;
         }
 
@@ -511,6 +738,289 @@
 
         /* Ẩn nhãn khi container có class labels-hidden */
         #mapContainer.labels-hidden .bds-hotspot-label {
+            opacity: 0 !important;
+            transform: translateX(-50%) translateY(4px);
+            pointer-events: none;
+        }
+
+        .bds-hotspot-tooltip {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 12px);
+            width: min(260px, 42vw);
+            min-width: 180px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.98);
+            color: #222;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translate(-50%, 8px);
+            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+            pointer-events: none;
+            z-index: 16;
+        }
+
+        .bds-hotspot-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: rgba(255, 255, 255, 0.98);
+        }
+
+        .bds-hotspot-tooltip h4 {
+            margin: 0 0 8px 0;
+            color: #222;
+            font-size: 15px;
+            font-weight: 700;
+            border-bottom-width: 3px;
+            border-bottom-style: solid;
+            padding-bottom: 6px;
+        }
+
+        .bds-hotspot-tooltip .bds-tooltip-info {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .bds-hotspot-tooltip .bds-tooltip-info span {
+            display: block;
+            margin: 4px 0;
+        }
+
+        .bds-hotspot:hover .bds-hotspot-tooltip,
+        .bds-hotspot[data-point-tooltip-visible="true"] .bds-hotspot-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, 0);
+        }
+
+        .bds-hotspot.edge-left .bds-hotspot-tooltip {
+            left: 0;
+            transform: translate(0, 8px);
+        }
+
+        .bds-hotspot.edge-left .bds-hotspot-tooltip::after {
+            left: 16px;
+            transform: none;
+        }
+
+        .bds-hotspot.edge-right .bds-hotspot-tooltip {
+            left: auto;
+            right: 0;
+            transform: translate(0, 8px);
+        }
+
+        .bds-hotspot.edge-right .bds-hotspot-tooltip::after {
+            left: auto;
+            right: 16px;
+            transform: none;
+        }
+
+        .bds-hotspot.edge-left:hover .bds-hotspot-tooltip,
+        .bds-hotspot.edge-left[data-point-tooltip-visible="true"] .bds-hotspot-tooltip,
+        .bds-hotspot.edge-right:hover .bds-hotspot-tooltip,
+        .bds-hotspot.edge-right[data-point-tooltip-visible="true"] .bds-hotspot-tooltip {
+            transform: translate(0, 0);
+        }
+
+        .bds-polygon-anchor {
+            position: absolute;
+            width: var(--polygon-icon-size);
+            height: var(--polygon-icon-size);
+            transform: translate(-50%, -50%);
+            z-index: 12;
+            --polygon-icon-size: 40px;
+            --polygon-icon-size-mobile: 32px;
+        }
+
+        .bds-polygon-anchor.effect-pulse::before {
+            content: '';
+            position: absolute;
+            width: var(--polygon-icon-size);
+            height: var(--polygon-icon-size);
+            border-radius: 50%;
+            background: var(--polygon-icon-color, #4f46e5);
+            opacity: 0.4;
+            animation: gentle-pulse 2s infinite;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+        }
+
+        .bds-polygon-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: var(--polygon-icon-size);
+            height: var(--polygon-icon-size);
+            min-width: var(--polygon-icon-size);
+            min-height: var(--polygon-icon-size);
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--polygon-icon-color, #4f46e5);
+            color: white;
+            font-size: calc(var(--polygon-icon-size) * 0.35);
+            line-height: 1;
+            font-weight: 600;
+            z-index: 2;
+            border: 3px solid white;
+            box-sizing: border-box;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .bds-polygon-icon:hover,
+        .bds-polygon-icon.polygon-icon-active {
+            transform: translate(-50%, -50%) scale(1.06);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        .bds-polygon-label {
+            position: absolute;
+            top: calc(var(--polygon-icon-size) + 3px);
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.55);
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 15;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            backdrop-filter: blur(2px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .bds-polygon-tooltip {
+            position: absolute;
+            left: 50%;
+            bottom: calc(var(--polygon-icon-size) + 14px);
+            width: min(260px, 42vw);
+            min-width: 180px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.98);
+            color: #222;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border: 1px solid rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translate(-50%, 8px);
+            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .bds-polygon-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: rgba(255,255,255,0.98);
+        }
+
+        .bds-polygon-tooltip h4 {
+            margin: 0 0 10px 0;
+            color: #222;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .bds-polygon-tooltip p {
+            font-size: 12px;
+            line-height: 1.45;
+            color: #555;
+            opacity: 1;
+            margin: 8px 0 0;
+        }
+
+        .bds-polygon-tooltip-divider {
+            width: 100%;
+            height: 3px;
+            margin: 10px 0;
+            border-radius: 999px;
+            background: var(--polygon-icon-color, #4f46e5);
+        }
+
+        .bds-polygon-tooltip .bds-tooltip-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 12px;
+            line-height: 1.45;
+            color: #555;
+            opacity: 1;
+        }
+
+        .bds-polygon-tooltip .bds-tooltip-info span {
+            display: block;
+        }
+
+        .bds-polygon-anchor[data-polygon-tooltip-visible="true"] .bds-polygon-tooltip,
+        .bds-polygon-anchor:hover .bds-polygon-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, 0);
+            pointer-events: auto;
+        }
+
+        @media (max-width: 768px) {
+            .bds-polygon-anchor {
+                --polygon-icon-size: var(--polygon-icon-size-mobile);
+            }
+
+            .bds-hotspot-tooltip {
+                width: calc(100vw - 40px);
+                max-width: 260px;
+                padding: 12px;
+                bottom: calc(100% + 8px);
+            }
+        }
+
+        .bds-polygon-shape {
+            cursor: pointer;
+            pointer-events: all;
+            transition: fill-opacity 0.18s ease, stroke-width 0.18s ease, filter 0.18s ease;
+        }
+
+        .bds-polygon-shape[data-polygon-tooltip-visible="true"] {
+            fill: var(--polygon-fill-color) !important;
+            fill-opacity: var(--polygon-fill-opacity) !important;
+            stroke: var(--polygon-stroke-color) !important;
+            stroke-width: var(--polygon-stroke-width) !important;
+        }
+
+        .bds-polygon-shape.polygon-active {
+            filter: drop-shadow(0 0 12px rgba(79, 70, 229, 0.3));
+        }
+
+        .bds-polygon-shape[data-polygon-display-mode="icon-only"] {
+            pointer-events: none;
+        }
+
+        #mapContainer.labels-hidden .bds-polygon-label {
             opacity: 0 !important;
             transform: translateX(-50%) translateY(4px);
             pointer-events: none;
@@ -648,7 +1158,7 @@
         .sidebar-content {
             flex: 1;
             overflow-y: auto;
-            padding: 16px;
+            padding: 16px 16px calc(var(--bottom-toolbar-height) + 24px);
         }
 
         .form-group {
@@ -686,6 +1196,23 @@
             margin-bottom: 16px;
         }
 
+        .point-editor-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .field-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .point-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
         .color-grid {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
@@ -695,10 +1222,10 @@
 
         .color-swatch {
             width: 100%;
-            aspect-ratio: 1;
-            border-radius: 4px;
+            aspect-ratio: 1 / 0.72;
+            border-radius: 6px;
             cursor: pointer;
-            border: 2px solid transparent;
+            border: 2px solid rgba(15, 23, 42, 0.08);
             transition: all 0.15s;
             position: relative;
         }
@@ -714,6 +1241,19 @@
             box-shadow: 0 0 0 2px white, 0 0 0 3px var(--primary);
         }
 
+        .color-custom-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 56px;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .color-picker-input {
+            padding: 4px;
+            min-height: 38px;
+            cursor: pointer;
+        }
+
         .color-swatch.selected::after {
             content: '✓';
             position: absolute;
@@ -724,6 +1264,20 @@
             font-size: 10px;
             font-weight: bold;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .tooltip-thumb {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            height: auto;
+            min-height: 78px;
+            max-height: 136px;
+            object-fit: cover;
+            display: block;
+            border-radius: 8px;
+            margin: 0 0 10px 0;
+            border: 1px solid rgba(0,0,0,0.08);
+            background: #eef2f7;
         }
 
         .row-flex {
@@ -737,6 +1291,10 @@
             align-items: center;
             gap: 8px;
             flex: 1;
+        }
+
+        .icon-group.compact {
+            width: 100%;
         }
 
         .icon-input {
@@ -788,6 +1346,13 @@
             text-align: center;
         }
 
+        .point-action-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
         .coord-display {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -830,6 +1395,19 @@
             transition: all 0.2s;
         }
 
+        .point-item.sorting {
+            opacity: 0.55;
+            cursor: grabbing;
+        }
+
+        .point-item.drag-over-top {
+            border-top: 2px solid var(--primary);
+        }
+
+        .point-item.drag-over-bottom {
+            border-bottom: 2px solid var(--primary);
+        }
+
         .point-item:hover {
             background: #f3f4f6;
             border-color: var(--primary);
@@ -838,6 +1416,11 @@
         .point-item.active {
             background: #eef2ff;
             border-color: var(--primary);
+        }
+
+        .route-item.active {
+            background: #fdf2f8;
+            border-color: #db2777;
         }
 
         .point-icon {
@@ -853,6 +1436,66 @@
             border: 2px solid white;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             flex-shrink: 0;
+        }
+
+        .point-drag-handle {
+            width: 28px;
+            height: 28px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            color: #64748b;
+            font-size: 15px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .point-drag-handle:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: #eef2ff;
+        }
+
+        .point-drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .route-swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            flex-shrink: 0;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.92);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
+            background: linear-gradient(90deg, transparent 0%, transparent 18%, currentColor 18%, currentColor 82%, transparent 82%, transparent 100%);
+        }
+
+        .route-swatch::after {
+            content: '';
+            position: absolute;
+            inset: 11px 4px 11px 4px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            animation: route-dash-flow 1.8s linear infinite;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.55);
+        }
+
+        .route-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .list-section-title {
+            font-size: 13px;
+            margin-bottom: 10px;
+            color: var(--text-muted);
         }
 
         .point-info {
@@ -1000,9 +1643,32 @@
             display: block;
         }
 
+        @media (max-width: 1380px) and (min-width: 769px) {
+            :root {
+                --header-height: 126px;
+                --bottom-toolbar-height: 92px;
+            }
+
+            .header {
+                padding: 10px 20px;
+                align-items: flex-start;
+            }
+
+            .header-controls {
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 10px;
+            }
+
+            .header-export-settings {
+                border-radius: 16px;
+            }
+        }
+
         @media (max-width: 768px) {
             :root {
-                --header-height: 118px;
+                --header-height: 126px;
+                --bottom-toolbar-height: 176px;
             }
 
             .app-container {
@@ -1024,6 +1690,10 @@
                 flex-direction: column;
                 align-items: stretch;
                 border-radius: 16px;
+                left: 12px;
+                right: 12px;
+                bottom: 12px;
+                justify-content: flex-start;
             }
 
             .header-export-input {
@@ -1037,6 +1707,16 @@
             .color-grid {
                 grid-template-columns: repeat(8, 1fr);
             }
+
+            .map-image-url-controls {
+                min-width: 100%;
+            }
+
+            .field-grid-2,
+            .size-input-group,
+            .point-action-row {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -1045,13 +1725,36 @@
 
     <div class="app-container">
         <header class="header">
-            <div class="logo">🏢 BDS Map Builder - Legend Zoom</div>
+            <div class="logo">
+                <div class="logo-title">Real Estate Map Visual Builder</div>
+                <div class="logo-meta">Version 4.1 • Updated April 12, 2026</div>
+            </div>
             <div class="header-controls">
                 <div class="header-export-settings">
                     <label class="header-toggle" for="includeLegend">
                         <input type="checkbox" id="includeLegend" class="header-toggle-input" checked>
                         <span class="header-toggle-slider" aria-hidden="true"></span>
                         <span class="header-toggle-text">📋 Bảng chú thích</span>
+                    </label>
+                    <label class="header-toggle" for="includeLabelToggle">
+                        <input type="checkbox" id="includeLabelToggle" class="header-toggle-input" checked>
+                        <span class="header-toggle-slider" aria-hidden="true"></span>
+                        <span class="header-toggle-text">🏷️ Nút nhãn</span>
+                    </label>
+                    <label class="header-toggle" for="minifyHtmlExport">
+                        <input type="checkbox" id="minifyHtmlExport" class="header-toggle-input">
+                        <span class="header-toggle-slider" aria-hidden="true"></span>
+                        <span class="header-toggle-text">🗜️ Nén HTML</span>
+                    </label>
+                    <label class="header-toggle" for="usePortalTooltip">
+                        <input type="checkbox" id="usePortalTooltip" class="header-toggle-input" checked>
+                        <span class="header-toggle-slider" aria-hidden="true"></span>
+                        <span class="header-toggle-text">🪟 Portal tooltip</span>
+                    </label>
+                    <label class="header-toggle" for="preventBackgroundClick">
+                        <input type="checkbox" id="preventBackgroundClick" class="header-toggle-input" checked>
+                        <span class="header-toggle-slider" aria-hidden="true"></span>
+                        <span class="header-toggle-text">🛡️ Chặn click nền</span>
                     </label>
                     <label class="header-export-item" for="mapExportId">
                         <span class="header-export-label">Map ID</span>
@@ -1086,14 +1789,31 @@
                 <div class="map-wrapper" id="mapWrapper">
                     <div
                         style="padding: 10px; background: #f9fafb; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 12px; color: var(--text-muted);">Click thêm điểm • Kéo thả di
-                            chuyển</span>
+                        <div class="map-toolbar">
+                            <div class="map-mode-buttons">
+                                <button type="button" class="map-mode-btn active" id="modePointBtn" onclick="startPointMode()">📍 Điểm</button>
+                                <button type="button" class="map-mode-btn" id="modeRouteBtn" onclick="startRoutePointMode()">〰️ Line theo điểm</button>
+                                <button type="button" class="map-mode-btn" id="modeFreehandBtn" onclick="startFreehandRouteMode()">✍️ Line vẽ tay</button>
+                                <button type="button" class="map-mode-btn" id="modePolygonBtn" onclick="startPolygonMode()">⬠ Polygon</button>
+                                <button type="button" class="map-mode-btn" id="finishRouteBtn" onclick="finishCurrentRoute()">✅ Kết thúc line</button>
+                                <button type="button" class="map-mode-btn warn" id="cancelRouteBtn" onclick="cancelCurrentRoute()">✕ Hủy line</button>
+                                <button type="button" class="map-mode-btn" id="finishPolygonBtn" onclick="finishCurrentPolygon()">✅ Kết thúc polygon</button>
+                                <button type="button" class="map-mode-btn warn" id="cancelPolygonBtn" onclick="cancelCurrentPolygon()">✕ Hủy polygon</button>
+                            </div>
+                            <div class="map-image-url-controls">
+                                <input type="text" id="mapImageUrlInput" class="map-image-url-input" placeholder="URL ảnh nền hiện tại hoặc dán URL mới">
+                                <button type="button" class="map-image-url-btn" onclick="applyBackgroundImageUrl()">Đổi ảnh nền</button>
+                            </div>
+                            <span style="font-size: 12px; color: var(--text-muted);" id="mapInstructions">Click thêm điểm • Kéo thả di
+                                chuyển</span>
+                        </div>
                         <span style="font-size: 12px; color: var(--primary); font-weight: 600;"
                             id="mapDimensions"></span>
                     </div>
                     <div style="padding: 16px; text-align: center; position: relative;">
                         <div class="bds-map-preview" id="mapContainer" style="position: relative;">
                             <img id="mapImage" src="" alt="Map">
+                            <svg id="mapRoutesSvg" class="bds-routes-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
                         </div>
                         <!-- Nút toggle nhãn gợi ý -->
                         <button class="label-toggle-btn" id="labelToggleBtn" onclick="toggleHintLabels()"
@@ -1108,7 +1828,7 @@
 
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h3 style="font-size: 14px;">🎨 Thông tin điểm</h3>
+                <h3 style="font-size: 14px;">🎨 Thông tin đối tượng</h3>
             </div>
 
             <div class="sidebar-content">
@@ -1119,46 +1839,28 @@
                 </div>
 
                 <form id="pointForm" style="display: none;">
-                    <div class="coord-display">
-                        <div>
-                            <div class="coord-value" id="posTop">0%</div>
-                            <div class="coord-label">Top</div>
-                        </div>
-                        <div>
-                            <div class="coord-value" id="posLeft">0%</div>
-                            <div class="coord-label">Left</div>
-                        </div>
-                    </div>
-
-                    <div class="compact-box">
-                        <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">🎨 Màu & Icon</div>
-
-                        <div class="color-grid" id="colorGrid"></div>
-                        <input type="hidden" id="inputColor" value="#4f46e5">
-
-                        <div class="row-flex" style="margin-top: 10px;">
-                            <div class="icon-group">
-                                <input type="text" class="form-input icon-input" id="inputIcon" maxlength="2"
-                                    placeholder="🏠" value="🏠">
-                                <div class="icon-preview-small" id="iconPreview" style="background: #4f46e5;">🏠</div>
+                    <div class="point-editor-grid">
+                        <div class="coord-display">
+                            <div>
+                                <div class="coord-value" id="posTop">0%</div>
+                                <div class="coord-label">Top</div>
                             </div>
-
-                            <select class="form-select effect-select" id="inputEffect">
-                                <option value="pulse">✨ Lan tỏa</option>
-                                <option value="heartbeat">💓 Nhịp tim</option>
-                                <option value="shake">📳 Rung</option>
-                                <option value="blink">💡 Nháy</option>
-                                <option value="bounce">⬆️ Nảy</option>
-                                <option value="rotate">🔄 Xoay</option>
-                                <option value="none">⛔ Không</option>
-                            </select>
+                            <div>
+                                <div class="coord-value" id="posLeft">0%</div>
+                                <div class="coord-label">Left</div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Icon Size Settings -->
-                    <div class="compact-box">
-                        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px;">📐 Kích thước icon (px)
+                        <div class="compact-box">
+                            <div class="point-section-title">🎨 Màu sắc</div>
+                            <div class="color-grid" id="colorGrid"></div>
+                            <input type="hidden" id="inputColor" value="#4f46e5">
+                            <div class="color-custom-row">
+                                <input type="text" class="form-input" id="inputColorCode" placeholder="#4F46E5">
+                                <input type="color" class="form-input color-picker-input" id="inputColorPicker" value="#4f46e5">
+                            </div>
                         </div>
+
                         <div class="size-input-group">
                             <div class="size-field">
                                 <label>Desktop (>768px)</label>
@@ -1169,51 +1871,273 @@
                                 <input type="number" id="iconSizeMobile" value="32" min="20" max="100">
                             </div>
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Tên khu vực</label>
-                        <input type="text" class="form-input" id="inputTitle" placeholder="VD: Lô A1...">
-                    </div>
+                        <div class="field-grid-2">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Icon</label>
+                                <div class="icon-group compact">
+                                    <input type="text" class="form-input icon-input" id="inputIcon" maxlength="2" placeholder="🏠" value="🏠">
+                                    <div class="icon-preview-small" id="iconPreview" style="background: #4f46e5;">🏠</div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Hiệu ứng</label>
+                                <select class="form-select" id="inputEffect">
+                                    <option value="pulse">✨ Lan tỏa</option>
+                                    <option value="heartbeat">💓 Nhịp tim</option>
+                                    <option value="shake">📳 Rung</option>
+                                    <option value="blink">💡 Nháy</option>
+                                    <option value="bounce">⬆️ Nảy</option>
+                                    <option value="rotate">🔄 Xoay</option>
+                                    <option value="none">⛔ Không</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                        <label class="form-label" style="display:flex;align-items:center;gap:5px;">
-                            Nhãn gợi ý (hiển thị dưới icon)
-                            <span style="font-size:10px;color:#9ca3af;font-weight:400;">Để trống → tự lấy tên; chỉ gõ
-                                cách → ẩn</span>
-                        </label>
-                        <input type="text" class="form-input" id="inputHintLabel"
-                            placeholder="Để trống: tự lấy 10 ký tự đầu tên điểm" maxlength="20">
-                    </div>
+                        <div class="field-grid-2">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Tên khu vực</label>
+                                <input type="text" class="form-input" id="inputTitle" placeholder="VD: Lô A1...">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Nhãn khu vực</label>
+                                <input type="text" class="form-input" id="inputHintLabel" placeholder="Để trống: tự lấy tên" maxlength="20">
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Diện tích</label>
-                        <input type="text" class="form-input" id="inputArea" placeholder="VD: 100m²...">
-                    </div>
+                        <div class="field-grid-2">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Nhãn diện tích</label>
+                                <input type="text" class="form-input" id="inputAreaLabel" placeholder="Mặc định: Diện tích">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Giá trị diện tích</label>
+                                <input type="text" class="form-input" id="inputArea" placeholder="VD: 100m2">
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Giá</label>
-                        <input type="text" class="form-input" id="inputPrice" placeholder="VD: 2.5 tỷ...">
-                    </div>
+                        <div class="field-grid-2">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Nhãn giá</label>
+                                <input type="text" class="form-input" id="inputPriceLabel" placeholder="Mặc định: Giá">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Giá trị giá</label>
+                                <input type="text" class="form-input" id="inputPrice" placeholder="VD: 2,5 tỷ">
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Mô tả</label>
-                        <textarea class="form-textarea" id="inputDetails" placeholder="Thông tin thêm..."></textarea>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">URL thumbnail tooltip</label>
+                            <input type="text" class="form-input" id="inputThumbnailUrl" placeholder="Để trống: không hiển thị thumbnail">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Thông tin mô tả</label>
+                            <textarea class="form-textarea" id="inputDetails" placeholder="Thông tin thêm..."></textarea>
+                        </div>
+
+                        <div class="point-action-row">
+                            <button type="button" class="btn btn-danger" onclick="deleteCurrentPoint()">🗑️ Xóa</button>
+                            <button type="button" class="btn btn-primary" onclick="savePoint()">💾 Lưu</button>
+                        </div>
+                    </div>
+                </form>
+
+                <form id="routeForm" style="display: none;">
+                    <div class="compact-box">
+                        <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">🛣️ Tuyến đường</div>
+                        <div class="route-form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Tên tuyến</label>
+                                <input type="text" class="form-input" id="inputRouteTitle" placeholder="VD: Tuyến TP.HCM">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nhãn ngắn</label>
+                                <input type="text" class="form-input" id="inputRouteLabel" placeholder="VD: TP.HCM">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Màu line</label>
+                                <input type="color" class="form-input" id="inputRouteColor" value="#ff6cb7" style="padding: 4px; min-height: 38px;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Animation</label>
+                                <select class="form-select" id="inputRouteAnimation">
+                                    <option value="brand-flow">Brand Flow</option>
+                                    <option value="brand-flow-soft">Brand Flow Soft</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Độ dày line</label>
+                                <input type="number" class="form-input" id="inputRouteWidth" value="0.85" min="0.2" max="3" step="0.05">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Độ rộng glow</label>
+                                <input type="number" class="form-input" id="inputRouteGlowWidth" value="2.7" min="0.5" max="8" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nét đứt</label>
+                                <input type="number" class="form-input" id="inputRouteDashLength" value="3" min="0.2" max="20" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Khoảng hở</label>
+                                <input type="number" class="form-input" id="inputRouteDashGap" value="2.8" min="0.2" max="20" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tốc độ flow (giây)</label>
+                                <input type="number" class="form-input" id="inputRouteFlowSpeed" value="2.8" min="0.2" max="20" step="0.1">
+                            </div>
+                        </div>
                     </div>
 
                     <div style="display: flex; gap: 8px; margin-top: 16px;">
-                        <button type="button" class="btn btn-danger" style="flex: 1;" onclick="deleteCurrentPoint()">🗑️
-                            Xóa</button>
-                        <button type="button" class="btn btn-primary" style="flex: 2;" onclick="savePoint()">💾
-                            Lưu</button>
+                        <button type="button" class="btn btn-danger" style="flex: 1;" onclick="deleteCurrentRoute()">🗑️ Xóa</button>
+                        <button type="button" class="btn btn-primary" style="flex: 2;" onclick="saveRoute()">💾 Lưu route</button>
+                    </div>
+                </form>
+
+                <form id="polygonForm" style="display: none;">
+                    <div class="compact-box">
+                        <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">⬠ Polygon</div>
+                        <div class="route-form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Tiêu đề</label>
+                                <input type="text" class="form-input" id="inputPolygonTitle" placeholder="VD: Phân khu A">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Icon</label>
+                                <input type="text" class="form-input" id="inputPolygonIcon" placeholder="⬠" maxlength="2">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nhãn hint</label>
+                                <input type="text" class="form-input" id="inputPolygonHintLabel" placeholder="Để trống: tự lấy tiêu đề" maxlength="20">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Hiển thị icon</label>
+                                <select class="form-select" id="inputPolygonShowIcon">
+                                    <option value="true">Hiện icon</option>
+                                    <option value="false">Ẩn icon</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Màu icon</label>
+                                <div class="color-custom-row">
+                                    <input type="text" class="form-input" id="inputPolygonIconColorCode" placeholder="#4F46E5">
+                                    <input type="color" class="form-input color-picker-input" id="inputPolygonIconColor" value="#4f46e5">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Hiệu ứng icon</label>
+                                <select class="form-select" id="inputPolygonIconEffect">
+                                    <option value="pulse">✨ Lan tỏa</option>
+                                    <option value="heartbeat">💓 Nhịp tim</option>
+                                    <option value="shake">📳 Rung</option>
+                                    <option value="blink">💡 Nháy</option>
+                                    <option value="bounce">⬆️ Nảy</option>
+                                    <option value="rotate">🔄 Xoay</option>
+                                    <option value="none">⛔ Không</option>
+                                </select>
+                            </div>
+                            <div class="size-input-group" style="grid-column: 1 / -1;">
+                                <div class="size-field">
+                                    <label>Icon desktop (>768px)</label>
+                                    <input type="number" id="inputPolygonIconSizeDesktop" value="40" min="20" max="100">
+                                </div>
+                                <div class="size-field">
+                                    <label>Icon mobile (≤768px)</label>
+                                    <input type="number" id="inputPolygonIconSizeMobile" value="32" min="20" max="100">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tooltip title</label>
+                                <input type="text" class="form-input" id="inputPolygonTooltipTitle" placeholder="VD: Phân khu A">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tooltip body</label>
+                                <textarea class="form-textarea" id="inputPolygonTooltipBody" placeholder="Nội dung mô tả polygon..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nhãn diện tích</label>
+                                <input type="text" class="form-input" id="inputPolygonAreaLabel" placeholder="Mặc định: Diện tích">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Giá trị diện tích</label>
+                                <input type="text" class="form-input" id="inputPolygonArea" placeholder="VD: 5.200 m2">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nhãn giá</label>
+                                <input type="text" class="form-input" id="inputPolygonPriceLabel" placeholder="Mặc định: Giá">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Giá trị giá</label>
+                                <input type="text" class="form-input" id="inputPolygonPrice" placeholder="VD: 12 tỷ">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">URL thumbnail tooltip</label>
+                                <input type="text" class="form-input" id="inputPolygonThumbnailUrl" placeholder="Để trống: không hiển thị thumbnail">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Thông tin thêm</label>
+                                <textarea class="form-textarea" id="inputPolygonDetails" placeholder="Thông tin thêm về phân khu..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Fill color</label>
+                                <div class="color-custom-row">
+                                    <input type="text" class="form-input" id="inputPolygonFillColorCode" placeholder="#4F46E5">
+                                    <input type="color" class="form-input color-picker-input" id="inputPolygonFillColor" value="#4f46e5">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Fill opacity</label>
+                                <input type="number" class="form-input" id="inputPolygonFillOpacity" value="0.18" min="0" max="1" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Stroke color</label>
+                                <div class="color-custom-row">
+                                    <input type="text" class="form-input" id="inputPolygonStrokeColorCode" placeholder="#4F46E5">
+                                    <input type="color" class="form-input color-picker-input" id="inputPolygonStrokeColor" value="#4f46e5">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Stroke width</label>
+                                <input type="number" class="form-input" id="inputPolygonStrokeWidth" value="0.6" min="0.1" max="6" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Display mode</label>
+                                <select class="form-select" id="inputPolygonDisplayMode">
+                                    <option value="outline-icon">Chỉ show viền + icon</option>
+                                    <option value="fill-outline-icon">Show nền + viền + icon</option>
+                                    <option value="icon-only">Chỉ show icon</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 16px;">
+                        <button type="button" class="btn btn-primary" style="flex: 1;" onclick="savePolygon(this)">💾 Lưu polygon</button>
+                        <button type="button" class="btn btn-secondary" style="flex: 1; background: #ef4444; color: #fff;" onclick="deleteCurrentPolygon()">🗑️ Xóa polygon</button>
                     </div>
                 </form>
 
                 <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
-                    <h4 style="font-size: 13px; margin-bottom: 10px; color: var(--text-muted);">
+                    <h4 class="list-section-title">
                         📋 Danh sách (<span id="pointCount">0</span>)
                     </h4>
                     <div class="points-list" id="pointsList"></div>
+                </div>
+
+                <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
+                    <h4 class="list-section-title">
+                        🛣️ Tuyến đường (<span id="routeCount">0</span>)
+                    </h4>
+                    <div class="points-list" id="routesList"></div>
+                </div>
+
+                <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
+                    <h4 class="list-section-title">
+                        ⬠ Polygon (<span id="polygonCount">0</span>)
+                    </h4>
+                    <div class="points-list" id="polygonsList"></div>
                 </div>
             </div>
         </aside>
@@ -1262,37 +2186,997 @@
                 <div class="code-block active" id="codeWp"></div>
                 <div class="code-block" id="codeJson"></div>
 
-                <button class="btn btn-success" id="exportCopyButton" style="margin-top: 16px; width: 100%;" onclick="copyCode(this)">📋 Copy
-                    code</button>
+                <div style="display: flex; gap: 10px; margin-top: 16px;">
+                    <button class="btn btn-success" id="exportCopyButton" style="flex: 1;" onclick="copyCode(this)">📋 Copy
+                        code</button>
+                    <button class="btn btn-primary" type="button" style="flex: 1;" onclick="createPreviewHtmlFile()">🌐 Tạo file
+                        preview</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         const colorPalette = [
-            '#ef4444', '#f87171', '#fca5a5', '#dc2626', '#b91c1c', '#991b1b',
-            '#f97316', '#fb923c', '#fdba74', '#ea580c', '#c2410c', '#9a3412',
-            '#f59e0b', '#fbbf24', '#fcd34d', '#d97706', '#b45309', '#92400e',
-            '#10b981', '#34d399', '#6ee7b7', '#059669', '#047857', '#065f46',
-            '#14b8a6', '#2dd4bf', '#5eead4', '#0d9488', '#0f766e', '#115e59',
-            '#3b82f6', '#60a5fa', '#93c5fd', '#2563eb', '#1d4ed8', '#1e40af',
-            '#6366f1', '#818cf8', '#a5b4fc', '#4f46e5', '#4338ca', '#3730a3',
-            '#ec4899', '#f472b6', '#f9a8d4', '#db2777', '#be185d', '#9d174d',
-            '#6b7280', '#8b5cf6'
+            '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#14b8a6',
+            '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#ec4899',
+            '#6b7280', '#111827'
         ];
 
         let points = [];
         let selectedPoint = null;
         let isDragging = false;
         let draggedPoint = null;
+        let draggedPointListId = null;
         let currentImageSrc = '';
         let currentImageUrl = '';
         let iconSizeDesktop = 40;
         let iconSizeMobile = 32;
         let exportMapId = '';
+        let routes = [];
+        let selectedRoute = null;
+        let polygons = [];
+        let selectedPolygon = null;
+        let activePolygonId = null;
+        let currentPolygonDraft = [];
+        let editorMode = 'point'; // point / route / polygon modes share this switch
+        let routeDraft = null;
+        let isFreehandDrawing = false;
+        let freehandPoints = [];
+        let activeFreehandPointerId = null;
+        const defaultRouteColor = '#ff6cb7';
+
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function roundPercent(value) {
+            return Math.round(value * 10) / 10;
+        }
+
+        function createSvgElement(tagName) {
+            return document.createElementNS('http://www.w3.org/2000/svg', tagName);
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function encodeDataAttribute(value) {
+            return escapeHtml(value).replace(/\n/g, '&#10;');
+        }
+
+        function showInspector(type) {
+            document.getElementById('pointForm').style.display = type === 'point' ? 'block' : 'none';
+            document.getElementById('routeForm').style.display = type === 'route' ? 'block' : 'none';
+            document.getElementById('polygonForm').style.display = type === 'polygon' ? 'block' : 'none';
+            document.getElementById('emptyState').style.display = type ? 'none' : 'block';
+            if (type !== 'point') clearPointTooltipVisibility();
+            if (!type) updateEmptyState();
+        }
+
+        function updateEmptyState() {
+            if (selectedPoint || selectedRoute || selectedPolygon) return;
+            const emptyState = document.getElementById('emptyState');
+            if (!emptyState) return;
+
+            let emoji = '📍';
+            let title = 'Chưa chọn đối tượng nào';
+            let hint = 'Click vào bản đồ để thêm điểm';
+
+            if (editorMode === 'route-click') {
+                emoji = '〰️';
+                title = routeDraft?.points?.length ? 'Đang tạo tuyến mới' : 'Chưa có tuyến nào đang chọn';
+                hint = routeDraft?.points?.length ? 'Click thêm điểm rồi bấm "Kết thúc line"' : 'Click lên ảnh để đặt từng điểm của tuyến';
+            } else if (editorMode === 'route-freehand') {
+                emoji = '✍️';
+                title = 'Sẵn sàng vẽ tuyến freehand';
+                hint = 'Giữ chuột và kéo trên ảnh để tạo tuyến';
+            } else if (editorMode === 'polygon') {
+                emoji = '⬠';
+                title = currentPolygonDraft.length ? 'Đang phác polygon' : 'Sẵn sàng cho polygon mode';
+                hint = 'Scaffold cho polygon mode sẽ dùng chung shell này';
+            }
+
+            emptyState.innerHTML = `
+                <div style="font-size: 40px; margin-bottom: 8px;">${emoji}</div>
+                <p>${title}</p>
+                <p style="font-size: 12px; margin-top: 4px;">${hint}</p>
+            `;
+        }
+
+        function updateMapInstructions() {
+            const instructions = document.getElementById('mapInstructions');
+            if (!instructions) return;
+
+            if (editorMode === 'point') {
+                instructions.textContent = 'Click thêm điểm • Kéo thả di chuyển';
+                return;
+            }
+
+            if (editorMode === 'route-click') {
+                instructions.textContent = routeDraft?.points?.length
+                    ? `Đã có ${routeDraft.points.length} điểm route • Bấm "Kết thúc line" để lưu`
+                    : 'Click từng điểm để tạo tuyến đường mềm';
+                return;
+            }
+
+            if (editorMode === 'polygon') {
+                instructions.textContent = currentPolygonDraft.length
+                    ? `Đã có ${currentPolygonDraft.length} điểm polygon • Bấm "Kết thúc polygon" để lưu`
+                    : 'Click từng điểm để tạo polygon khép kín';
+                return;
+            }
+
+            instructions.textContent = isFreehandDrawing
+                ? 'Đang ghi nét vẽ • Thả chuột để tạo route'
+                : 'Giữ chuột và kéo để vẽ route tự do';
+        }
+
+        function updateModeButtons() {
+            const modes = {
+                point: document.getElementById('modePointBtn'),
+                'route-click': document.getElementById('modeRouteBtn'),
+                'route-freehand': document.getElementById('modeFreehandBtn'),
+                polygon: document.getElementById('modePolygonBtn')
+            };
+
+            Object.entries(modes).forEach(([mode, button]) => {
+                if (!button) return;
+                button.classList.toggle('active', editorMode === mode);
+            });
+
+            const mapContainer = document.getElementById('mapContainer');
+            if (mapContainer) {
+                mapContainer.classList.toggle('mode-route-click', editorMode === 'route-click');
+                mapContainer.classList.toggle('mode-route-freehand', editorMode === 'route-freehand');
+            }
+
+            const hasDraft = !!(routeDraft && routeDraft.points && routeDraft.points.length);
+            const finishBtn = document.getElementById('finishRouteBtn');
+            const cancelBtn = document.getElementById('cancelRouteBtn');
+            if (finishBtn) finishBtn.disabled = !hasDraft;
+            if (cancelBtn) cancelBtn.disabled = !hasDraft;
+
+            const hasPolygonDraft = currentPolygonDraft.length > 0;
+            const finishPolygonBtn = document.getElementById('finishPolygonBtn');
+            const cancelPolygonBtn = document.getElementById('cancelPolygonBtn');
+            if (finishPolygonBtn) finishPolygonBtn.disabled = !hasPolygonDraft;
+            if (cancelPolygonBtn) cancelPolygonBtn.disabled = !hasPolygonDraft;
+
+            updateMapInstructions();
+            updateEmptyState();
+        }
+
+        function setEditorMode(mode) {
+            if (editorMode === mode) {
+                updateModeButtons();
+                return;
+            }
+
+            if (routeDraft && routeDraft.points?.length && mode !== editorMode) {
+                const shouldDiscard = confirm('Tuyến hiện tại chưa lưu. Bạn có muốn hủy route đang vẽ để đổi chế độ không?');
+                if (!shouldDiscard) return;
+                routeDraft = null;
+                freehandPoints = [];
+                isFreehandDrawing = false;
+                activeFreehandPointerId = null;
+                renderRoutes();
+            }
+
+            if (currentPolygonDraft.length && mode !== editorMode) {
+                const shouldDiscardPolygon = confirm('Polygon hiện tại chưa lưu. Bạn có muốn hủy polygon đang vẽ để đổi chế độ không?');
+                if (!shouldDiscardPolygon) return;
+                currentPolygonDraft = [];
+                renderRoutes();
+            }
+
+            editorMode = mode;
+            updateModeButtons();
+        }
+
+        function startPointMode() {
+            setEditorMode('point');
+        }
+
+        function startRoutePointMode() {
+            setEditorMode('route-click');
+        }
+
+        function startFreehandRouteMode() {
+            setEditorMode('route-freehand');
+        }
+
+        function startPolygonMode() {
+            setEditorMode('polygon');
+        }
+
+        function normalizePointToPercent(clientX, clientY, rect) {
+            const x = clamp(clientX - rect.left, 0, rect.width);
+            const y = clamp(clientY - rect.top, 0, rect.height);
+            return {
+                x: roundPercent((x / rect.width) * 100),
+                y: roundPercent((y / rect.height) * 100)
+            };
+        }
+
+        function getPercentPointFromEvent(event, container) {
+            return normalizePointToPercent(event.clientX, event.clientY, container.getBoundingClientRect());
+        }
+
+        function getNextRouteId() {
+            return Math.max(
+                0,
+                ...routes.map(route => Number(route.id) || 0),
+                routeDraft ? (Number(routeDraft.id) || 0) : 0
+            ) + 1;
+        }
+
+        function getNextPolygonId() {
+            return Math.max(
+                0,
+                ...polygons.map(polygon => Number(polygon.id) || 0)
+            ) + 1;
+        }
+
+        function createDraftRoute() {
+            return {
+                id: getNextRouteId(),
+                title: `Tuyến ${String(routes.length + 1).padStart(2, '0')}`,
+                label: '',
+                color: defaultRouteColor,
+                width: 0.85,
+                glowWidth: 2.7,
+                animation: 'brand-flow',
+                dashLength: 3,
+                dashGap: 2.8,
+                flowSpeed: 2.8,
+                points: []
+            };
+        }
+
+        function buildSmoothPath(points) {
+            const localRound = (value) => Math.round(value * 10) / 10;
+            if (!Array.isArray(points) || points.length < 2) return '';
+            if (points.length === 2) {
+                return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+            }
+
+            let path = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length - 1; i += 1) {
+                const midpointX = localRound((points[i].x + points[i + 1].x) / 2);
+                const midpointY = localRound((points[i].y + points[i + 1].y) / 2);
+                path += ` Q ${points[i].x} ${points[i].y} ${midpointX} ${midpointY}`;
+            }
+
+            const beforeLast = points[points.length - 2];
+            const last = points[points.length - 1];
+            path += ` Q ${beforeLast.x} ${beforeLast.y} ${last.x} ${last.y}`;
+            return path;
+        }
+
+        function buildPolygonPath(points) {
+            if (!Array.isArray(points) || points.length < 2) return '';
+
+            let path = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length; i += 1) {
+                path += ` L ${points[i].x} ${points[i].y}`;
+            }
+
+            if (points.length >= 3) {
+                path += ' Z';
+            }
+
+            return path;
+        }
+
+        function simplifyRoutePoints(points, minDistance = 1.2) {
+            if (!Array.isArray(points) || points.length <= 2) return Array.isArray(points) ? points.slice() : [];
+
+            const result = [points[0]];
+            for (let i = 1; i < points.length - 1; i += 1) {
+                const previous = result[result.length - 1];
+                const current = points[i];
+                const distance = Math.hypot(current.x - previous.x, current.y - previous.y);
+                if (distance >= minDistance) {
+                    result.push({
+                        x: roundPercent(current.x),
+                        y: roundPercent(current.y)
+                    });
+                }
+            }
+
+            const last = points[points.length - 1];
+            const previous = result[result.length - 1];
+            if (!previous || previous.x !== last.x || previous.y !== last.y) {
+                result.push({
+                    x: roundPercent(last.x),
+                    y: roundPercent(last.y)
+                });
+            }
+
+            return result;
+        }
+
+        function getRouteLabelPosition(route) {
+            if (!route?.points?.length) return null;
+            return route.points[Math.floor(route.points.length / 2)] || route.points[route.points.length - 1];
+        }
+
+        function getRouteDisplayText(route) {
+            return route.label || route.title || `Route ${route.id}`;
+        }
+
+        function getPolygonDisplayMode(polygon) {
+            const mode = polygon?.displayMode || 'outline-icon';
+            if (mode === 'outline-only') return 'outline-icon';
+            if (mode === 'fill-stroke' || mode === 'always-visible' || mode === 'fill-only' || mode === 'hover-only') return 'fill-outline-icon';
+            if (mode === 'hidden') return 'icon-only';
+            return mode;
+        }
+
+        function getPolygonDisplayLabel(polygon) {
+            const mode = getPolygonDisplayMode(polygon);
+            if (mode === 'outline-icon') return 'Chỉ viền + icon';
+            if (mode === 'fill-outline-icon') return 'Nền + viền + icon';
+            if (mode === 'icon-only') return 'Chỉ icon';
+            return mode;
+        }
+
+        function resolvePolygonHintLabel(polygon) {
+            return (polygon?.hintLabel || polygon?.title || '').trim();
+        }
+
+        function getPolygonCentroid(points) {
+            if (!Array.isArray(points) || points.length === 0) return null;
+
+            const totals = points.reduce((accumulator, point) => {
+                accumulator.x += Number(point.x) || 0;
+                accumulator.y += Number(point.y) || 0;
+                return accumulator;
+            }, { x: 0, y: 0 });
+
+            return {
+                x: roundPercent(totals.x / points.length),
+                y: roundPercent(totals.y / points.length)
+            };
+        }
+
+        function getPolygonCenter(points) {
+            return getPolygonCentroid(points);
+        }
+
+        function syncPolygonActiveState() {
+            document.querySelectorAll('[data-polygon-id]').forEach((element) => {
+                const isActive = String(activePolygonId) === String(element.getAttribute('data-polygon-id'));
+                element.classList.toggle('polygon-active', isActive);
+                element.classList.toggle('polygon-icon-active', isActive);
+                element.setAttribute('data-polygon-tooltip-visible', isActive ? 'true' : 'false');
+            });
+        }
+
+        function closePolygonTooltip() {
+            activePolygonId = null;
+            syncPolygonActiveState();
+        }
+
+        function togglePolygonActive(id) {
+            activePolygonId = String(activePolygonId) === String(id) ? null : id;
+            syncPolygonActiveState();
+        }
+
+        function isCoarsePointerDevice() {
+            return !!(window.matchMedia && window.matchMedia('(hover: none), (pointer: coarse)').matches);
+        }
+
+        function shouldKeepPolygonHoverActive(event, polygonId) {
+            const nextTarget = event.relatedTarget?.closest('[data-polygon-id]');
+            return String(nextTarget?.getAttribute('data-polygon-id')) === String(polygonId);
+        }
+
+        function renderRoutes() {
+            const svg = document.getElementById('mapRoutesSvg');
+            if (!svg) return;
+            svg.innerHTML = '';
+            document.querySelectorAll('[data-polygon-builder-icon="true"]').forEach(icon => icon.remove());
+            document.querySelectorAll('[data-polygon-builder-tooltip="true"]').forEach(tooltip => tooltip.remove());
+            const mapContainer = document.getElementById('mapContainer');
+
+            const polygonItems = polygons.map(polygon => ({ polygon, draft: false }));
+            if (currentPolygonDraft.length) {
+                polygonItems.push({
+                    polygon: { id: 'draft', points: currentPolygonDraft.slice() },
+                    draft: true
+                });
+            }
+
+            polygonItems.forEach(({ polygon, draft }) => {
+                if (!polygon?.points?.length) return;
+
+                const polygonPath = buildPolygonPath(polygon.points);
+                if (!polygonPath) return;
+
+                const displayMode = getPolygonDisplayMode(polygon);
+
+                const polygonElement = createSvgElement('path');
+                polygonElement.setAttribute('d', polygonPath);
+                polygonElement.setAttribute('class', 'bds-polygon-shape');
+                const fillColor = polygon.fillColor || '#4f46e5';
+                const parsedFillOpacity = parseFloat(polygon.fillOpacity);
+                const fillOpacity = draft ? 0.14 : clamp(Number.isFinite(parsedFillOpacity) ? parsedFillOpacity : 0.18, 0, 1);
+                const strokeColor = polygon.strokeColor || '#4f46e5';
+                const strokeWidth = draft ? 0.45 : Math.max(0.1, parseFloat(polygon.strokeWidth) || 0.6);
+                const isOutlineIcon = displayMode === 'outline-icon';
+                const isFillOutlineIcon = displayMode === 'fill-outline-icon';
+                const isIconOnly = displayMode === 'icon-only';
+                const isSelectedPolygon = !draft && selectedPolygon?.id === polygon.id;
+
+                polygonElement.setAttribute('fill', isFillOutlineIcon ? fillColor : 'transparent');
+                polygonElement.setAttribute('fill-opacity', isFillOutlineIcon ? String(fillOpacity) : '0');
+                polygonElement.setAttribute('stroke', isIconOnly ? 'transparent' : strokeColor);
+                polygonElement.setAttribute('stroke-width', String(isSelectedPolygon ? strokeWidth + 0.15 : strokeWidth));
+                polygonElement.setAttribute('stroke-dasharray', draft ? '1.8 1.2' : 'none');
+                polygonElement.setAttribute('data-polygon-builder-shape', 'true');
+                polygonElement.setAttribute('data-polygon-builder-interactive', 'true');
+                polygonElement.setAttribute('data-polygon-id', polygon.id);
+                polygonElement.setAttribute('data-polygon-display-mode', displayMode);
+                polygonElement.setAttribute('data-polygon-tooltip-visible', 'false');
+                polygonElement.style.setProperty('--polygon-fill-color', fillColor);
+                polygonElement.style.setProperty('--polygon-fill-opacity', String(fillOpacity));
+                polygonElement.style.setProperty('--polygon-stroke-color', strokeColor);
+                polygonElement.style.setProperty('--polygon-stroke-width', String(isSelectedPolygon ? strokeWidth + 0.15 : strokeWidth));
+                polygonElement.setAttribute('pointer-events', draft || isIconOnly ? 'none' : 'all');
+
+                if (!draft) {
+                    polygonElement.addEventListener('click', function (event) {
+                        event.stopPropagation();
+                        selectPolygon(polygon.id);
+                        if (isCoarsePointerDevice()) togglePolygonActive(polygon.id);
+                    });
+
+                    polygonElement.addEventListener('mouseenter', function () {
+                        if (isCoarsePointerDevice()) return;
+                        activePolygonId = polygon.id;
+                        syncPolygonActiveState();
+                    });
+
+                    polygonElement.addEventListener('mouseleave', function () {
+                        if (isCoarsePointerDevice()) return;
+                        if (shouldKeepPolygonHoverActive(event, polygon.id)) return;
+                        closePolygonTooltip();
+                    });
+                }
+
+                svg.appendChild(polygonElement);
+
+                if (!draft && mapContainer) {
+                    const centroid = getPolygonCentroid(polygon.points);
+                    const tooltipTitle = polygon.tooltipTitle || polygon.title || `Polygon ${polygon.id}`;
+                    const tooltipBody = polygon.tooltipBody || 'Chưa có mô tả cho polygon này.';
+                    const areaLabel = resolveTooltipFieldLabel(polygon.areaLabel, 'Diện tích');
+                    const priceLabel = resolveTooltipFieldLabel(polygon.priceLabel, 'Giá');
+                    const thumbnailUrl = (polygon.thumbnailUrl || '').trim();
+
+                    if (centroid && (polygon.showIcon || tooltipTitle || tooltipBody)) {
+                        const hintLabel = resolvePolygonHintLabel(polygon);
+                        const polygonEffectClass = `effect-${polygon.iconEffect || 'none'}`;
+                        const iconColor = polygon.iconColor || fillColor;
+                        const iconSizeDesktop = polygon.iconSizeDesktop || 40;
+                        const iconSizeMobile = polygon.iconSizeMobile || 32;
+                        const anchor = document.createElement('div');
+                        anchor.className = `bds-polygon-anchor ${polygonEffectClass}`.trim();
+                        anchor.setAttribute('data-polygon-builder-icon', 'true');
+                        anchor.setAttribute('data-polygon-builder-tooltip', 'true');
+                        anchor.setAttribute('data-polygon-builder-interactive', 'true');
+                        anchor.setAttribute('data-polygon-id', polygon.id);
+                        anchor.setAttribute('data-polygon-tooltip-visible', 'false');
+                        anchor.style.left = `${centroid.x}%`;
+                        anchor.style.top = `${centroid.y}%`;
+                        anchor.style.setProperty('--polygon-icon-color', iconColor);
+                        anchor.style.setProperty('--polygon-icon-size', `${iconSizeDesktop}px`);
+                        anchor.style.setProperty('--polygon-icon-size-mobile', `${iconSizeMobile}px`);
+
+                        if (polygon.showIcon && polygon.icon) {
+                            const tapHint = document.createElement('div');
+                            tapHint.className = 'bds-tap-hint';
+                            tapHint.setAttribute('aria-hidden', 'true');
+                            tapHint.textContent = '👆';
+                            anchor.appendChild(tapHint);
+
+                            const icon = document.createElement('button');
+                            icon.type = 'button';
+                            icon.className = 'bds-polygon-icon';
+                            icon.setAttribute('data-polygon-builder-interactive', 'true');
+                            icon.setAttribute('data-polygon-id', polygon.id);
+                            icon.textContent = polygon.icon;
+                            icon.addEventListener('click', function (event) {
+                                event.stopPropagation();
+                                selectPolygon(polygon.id);
+                                if (isCoarsePointerDevice()) togglePolygonActive(polygon.id);
+                            });
+                            icon.addEventListener('mouseenter', function () {
+                                if (isCoarsePointerDevice()) return;
+                                activePolygonId = polygon.id;
+                                syncPolygonActiveState();
+                            });
+                            icon.addEventListener('mouseleave', function () {
+                                if (isCoarsePointerDevice()) return;
+                                if (shouldKeepPolygonHoverActive(event, polygon.id)) return;
+                                closePolygonTooltip();
+                            });
+                            anchor.appendChild(icon);
+                        }
+
+                        if (hintLabel) {
+                            const label = document.createElement('div');
+                            label.className = 'bds-polygon-label';
+                            label.textContent = hintLabel;
+                            anchor.appendChild(label);
+                        }
+
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'bds-polygon-tooltip';
+                        tooltip.setAttribute('data-polygon-builder-interactive', 'true');
+                        tooltip.setAttribute('data-area-label', areaLabel);
+                        tooltip.setAttribute('data-price-label', priceLabel);
+                        tooltip.setAttribute('data-thumbnail-url', thumbnailUrl);
+                        const polygonTooltipInfoRows = [
+                            polygon.area ? `<span>📐 ${escapeHtml(areaLabel)}: ${escapeHtml(polygon.area)}</span>` : '',
+                            polygon.price ? `<span>💰 ${escapeHtml(priceLabel)}: ${escapeHtml(polygon.price)}</span>` : '',
+                            polygon.details ? `<span>ℹ️ ${escapeHtml(polygon.details)}</span>` : ''
+                        ].filter(Boolean);
+                        const polygonTooltipBodyMarkup = tooltipBody ? `<p>${escapeHtml(tooltipBody)}</p>` : '';
+                        const polygonTooltipDividerMarkup = (polygonTooltipInfoRows.length || polygonTooltipBodyMarkup)
+                            ? '<div class="bds-polygon-tooltip-divider"></div>'
+                            : '';
+                        tooltip.innerHTML = `
+                            <h4>${escapeHtml(tooltipTitle)}</h4>
+                            ${thumbnailUrl ? `<img src="${escapeHtml(thumbnailUrl)}" alt="${escapeHtml(tooltipTitle)}" class="tooltip-thumb" loading="lazy">` : ''}
+                            ${polygonTooltipDividerMarkup}
+                            ${polygonTooltipInfoRows.length ? `<div class="bds-tooltip-info">${polygonTooltipInfoRows.join('')}</div>` : ''}
+                            ${polygonTooltipBodyMarkup}
+                        `;
+                        anchor.addEventListener('mouseenter', function () {
+                            if (isCoarsePointerDevice()) return;
+                            activePolygonId = polygon.id;
+                            syncPolygonActiveState();
+                        });
+                        anchor.addEventListener('mouseleave', function (event) {
+                            if (isCoarsePointerDevice()) return;
+                            if (shouldKeepPolygonHoverActive(event, polygon.id)) return;
+                            closePolygonTooltip();
+                        });
+                        anchor.appendChild(tooltip);
+                        mapContainer.appendChild(anchor);
+                    }
+                }
+            });
+
+            syncPolygonActiveState();
+
+            const renderItems = routes.map(route => ({ route, draft: false }));
+            if (routeDraft) renderItems.push({ route: routeDraft, draft: true });
+
+            renderItems.forEach(({ route, draft }) => {
+                if (!route?.points?.length) return;
+
+                const group = createSvgElement('g');
+                group.setAttribute('class', `bds-route-group${selectedRoute?.id === route.id && !draft ? ' route-selected' : ''}${draft ? ' route-draft' : ''}`);
+                group.setAttribute('data-route-id', route.id);
+                group.setAttribute('data-route-builder-route', 'true');
+                group.setAttribute('data-route-animation', route.animation || 'brand-flow');
+                group.style.setProperty('--route-color', route.color || defaultRouteColor);
+                group.style.setProperty('--route-width', route.width || 0.85);
+                group.style.setProperty('--route-glow', route.glowWidth || 2.7);
+                group.style.setProperty('--route-dash-length', route.dashLength || 3);
+                group.style.setProperty('--route-dash-gap', route.dashGap || 2.8);
+                group.style.setProperty('--route-flow-speed', `${route.flowSpeed || 2.8}s`);
+
+                const pathData = buildSmoothPath(route.points);
+                if (!pathData) return;
+
+                const glow = createSvgElement('path');
+                glow.setAttribute('class', 'bds-route-glow');
+                glow.setAttribute('d', pathData);
+                group.appendChild(glow);
+
+                const core = createSvgElement('path');
+                core.setAttribute('class', 'bds-route-core');
+                core.setAttribute('d', pathData);
+                group.appendChild(core);
+
+                const flow = createSvgElement('path');
+                flow.setAttribute('class', 'bds-route-flow');
+                flow.setAttribute('d', pathData);
+                group.appendChild(flow);
+
+                const labelPosition = getRouteLabelPosition(route);
+                if (labelPosition && getRouteDisplayText(route)) {
+                    const label = createSvgElement('text');
+                    label.setAttribute('class', 'bds-route-label');
+                    label.setAttribute('x', roundPercent(labelPosition.x + 1.2));
+                    label.setAttribute('y', roundPercent(labelPosition.y - 1.2));
+                    label.textContent = getRouteDisplayText(route);
+                    group.appendChild(label);
+                }
+
+                if (!draft) {
+                    group.addEventListener('click', function (event) {
+                        event.stopPropagation();
+                        const selected = routes.find(item => item.id === route.id);
+                        if (selected) selectRoute(selected);
+                    });
+                }
+
+                svg.appendChild(group);
+            });
+        }
+
+        function updateRoutesList() {
+            const list = document.getElementById('routesList');
+            const count = document.getElementById('routeCount');
+            if (count) count.textContent = routes.length;
+            if (!list) return;
+
+            if (routes.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted); font-size: 12px; text-align: center;">Chưa có tuyến</p>';
+                return;
+            }
+
+            list.innerHTML = routes.map((route, idx) => `
+            <div class="point-item route-item ${selectedRoute?.id === route.id ? 'active' : ''}" onclick="selectRouteById(${route.id})">
+                <div class="route-swatch" style="color: ${route.color};"></div>
+                <div class="point-info">
+                    <div class="point-title">${idx + 1}. ${escapeHtml(route.title || `Tuyến ${route.id}`)}</div>
+                    <div class="point-meta">${escapeHtml(route.label || 'Không có nhãn')} • ${route.points.length} điểm neo</div>
+                </div>
+                <button class="delete-btn" onclick="event.stopPropagation(); deleteRouteById(${route.id})">🗑️</button>
+            </div>
+        `).join('');
+        }
+
+        function updatePolygonsList() {
+            const list = document.getElementById('polygonsList');
+            const count = document.getElementById('polygonCount');
+            if (count) count.textContent = polygons.length;
+            if (!list) return;
+
+            if (polygons.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted); font-size: 12px; text-align: center;">Chưa có polygon</p>';
+                return;
+            }
+
+            list.innerHTML = polygons.map((polygon, index) => `
+            <div class="point-item ${selectedPolygon?.id === polygon.id ? 'active' : ''}" onclick="selectPolygon(${polygon.id})">
+                <div class="point-icon" style="background: ${escapeHtml(polygon.fillColor || '#4f46e5')};">${escapeHtml(polygon.icon || '⬠')}</div>
+                <div class="point-info">
+                    <div class="point-title">${index + 1}. ${escapeHtml(polygon.title || `Polygon ${polygon.id}`)}</div>
+                    <div class="point-meta">${escapeHtml(getPolygonDisplayLabel(polygon))} • ${polygon.points.length} điểm</div>
+                </div>
+                <button class="delete-btn" onclick="event.stopPropagation(); deletePolygonById(${polygon.id})">🗑️</button>
+            </div>
+        `).join('');
+        }
+
+        function selectPolygon(id) {
+            const polygon = typeof id === 'object' ? id : polygons.find(item => item.id === id);
+            if (!polygon) return;
+
+            selectedPolygon = polygon;
+            selectedPoint = null;
+            selectedRoute = null;
+            showInspector('polygon');
+
+            document.getElementById('inputPolygonTitle').value = polygon.title || '';
+            document.getElementById('inputPolygonIcon').value = polygon.icon || '';
+            document.getElementById('inputPolygonHintLabel').value = polygon.hintLabel || '';
+            document.getElementById('inputPolygonShowIcon').value = polygon.showIcon === false ? 'false' : 'true';
+            document.getElementById('inputPolygonIconEffect').value = polygon.iconEffect || 'none';
+            syncPolygonColorInputGroup('inputPolygonIconColor', 'inputPolygonIconColorCode', polygon.iconColor || polygon.fillColor || '#4f46e5');
+            document.getElementById('inputPolygonIconSizeDesktop').value = polygon.iconSizeDesktop || 40;
+            document.getElementById('inputPolygonIconSizeMobile').value = polygon.iconSizeMobile || 32;
+            document.getElementById('inputPolygonTooltipTitle').value = polygon.tooltipTitle || '';
+            document.getElementById('inputPolygonTooltipBody').value = polygon.tooltipBody || '';
+            document.getElementById('inputPolygonAreaLabel').value = polygon.areaLabel || 'Diện tích';
+            document.getElementById('inputPolygonArea').value = polygon.area || '';
+            document.getElementById('inputPolygonPriceLabel').value = polygon.priceLabel || 'Giá';
+            document.getElementById('inputPolygonPrice').value = polygon.price || '';
+            document.getElementById('inputPolygonThumbnailUrl').value = polygon.thumbnailUrl || '';
+            document.getElementById('inputPolygonDetails').value = polygon.details || '';
+            syncPolygonColorInputGroup('inputPolygonFillColor', 'inputPolygonFillColorCode', polygon.fillColor || '#4f46e5');
+            document.getElementById('inputPolygonFillOpacity').value = polygon.fillOpacity ?? 0.18;
+            syncPolygonColorInputGroup('inputPolygonStrokeColor', 'inputPolygonStrokeColorCode', polygon.strokeColor || '#4f46e5');
+            document.getElementById('inputPolygonStrokeWidth').value = polygon.strokeWidth ?? 0.6;
+            document.getElementById('inputPolygonDisplayMode').value = getPolygonDisplayMode(polygon);
+
+            renderRoutes();
+            updatePointsList();
+            updateRoutesList();
+            updatePolygonsList();
+        }
+
+        function savePolygon(button) {
+            if (!selectedPolygon) return;
+
+            selectedPolygon.title = document.getElementById('inputPolygonTitle').value.trim() || selectedPolygon.title;
+            selectedPolygon.icon = document.getElementById('inputPolygonIcon').value.trim() || '⬠';
+            selectedPolygon.hintLabel = document.getElementById('inputPolygonHintLabel').value.trim();
+            selectedPolygon.showIcon = document.getElementById('inputPolygonShowIcon').value === 'true';
+            selectedPolygon.iconEffect = document.getElementById('inputPolygonIconEffect').value || 'none';
+            selectedPolygon.iconColor = syncPolygonColorInputGroup('inputPolygonIconColor', 'inputPolygonIconColorCode', document.getElementById('inputPolygonIconColorCode').value || document.getElementById('inputPolygonIconColor').value || selectedPolygon.fillColor || '#4f46e5');
+            selectedPolygon.iconSizeDesktop = parseInt(document.getElementById('inputPolygonIconSizeDesktop').value, 10) || 40;
+            selectedPolygon.iconSizeMobile = parseInt(document.getElementById('inputPolygonIconSizeMobile').value, 10) || 32;
+            selectedPolygon.tooltipTitle = document.getElementById('inputPolygonTooltipTitle').value.trim();
+            selectedPolygon.tooltipBody = document.getElementById('inputPolygonTooltipBody').value.trim();
+            selectedPolygon.areaLabel = document.getElementById('inputPolygonAreaLabel').value.trim() || 'Diện tích';
+            selectedPolygon.area = document.getElementById('inputPolygonArea').value.trim();
+            selectedPolygon.priceLabel = document.getElementById('inputPolygonPriceLabel').value.trim() || 'Giá';
+            selectedPolygon.price = document.getElementById('inputPolygonPrice').value.trim();
+            selectedPolygon.thumbnailUrl = document.getElementById('inputPolygonThumbnailUrl').value.trim();
+            selectedPolygon.details = document.getElementById('inputPolygonDetails').value.trim();
+            selectedPolygon.fillColor = syncPolygonColorInputGroup('inputPolygonFillColor', 'inputPolygonFillColorCode', document.getElementById('inputPolygonFillColorCode').value || document.getElementById('inputPolygonFillColor').value || '#4f46e5');
+            const fillOpacity = parseFloat(document.getElementById('inputPolygonFillOpacity').value);
+            selectedPolygon.fillOpacity = clamp(Number.isFinite(fillOpacity) ? fillOpacity : 0.18, 0, 1);
+            selectedPolygon.strokeColor = syncPolygonColorInputGroup('inputPolygonStrokeColor', 'inputPolygonStrokeColorCode', document.getElementById('inputPolygonStrokeColorCode').value || document.getElementById('inputPolygonStrokeColor').value || '#4f46e5');
+            selectedPolygon.strokeWidth = Math.max(0.1, parseFloat(document.getElementById('inputPolygonStrokeWidth').value) || 0.6);
+            selectedPolygon.displayMode = document.getElementById('inputPolygonDisplayMode').value || 'outline-icon';
+
+            renderRoutes();
+            updatePolygonsList();
+            refreshExportPreviewIfOpen();
+
+            const btn = button || event?.target;
+            if (!btn) return;
+            btn.innerHTML = '✅ Đã lưu polygon!';
+            setTimeout(() => btn.innerHTML = '💾 Lưu polygon', 1500);
+        }
+
+        function deleteCurrentPolygon() {
+            if (!selectedPolygon) return;
+            deletePolygonById(selectedPolygon.id);
+        }
+
+        function deletePolygonById(id) {
+            polygons = polygons.filter(polygon => polygon.id !== id);
+            if (selectedPolygon?.id === id) {
+                selectedPolygon = null;
+                showInspector(null);
+            }
+            closePolygonTooltip();
+            renderRoutes();
+            updatePolygonsList();
+            refreshExportPreviewIfOpen();
+        }
+
+        function selectRoute(route) {
+            selectedRoute = route;
+            selectedPoint = null;
+            selectedPolygon = null;
+            document.querySelectorAll('.bds-hotspot').forEach(marker => marker.style.zIndex = '');
+            showInspector('route');
+            document.getElementById('inputRouteTitle').value = route.title || '';
+            document.getElementById('inputRouteLabel').value = route.label || '';
+            document.getElementById('inputRouteColor').value = route.color || defaultRouteColor;
+            document.getElementById('inputRouteAnimation').value = route.animation || 'brand-flow';
+            document.getElementById('inputRouteWidth').value = route.width || 0.85;
+            document.getElementById('inputRouteGlowWidth').value = route.glowWidth || 2.7;
+            document.getElementById('inputRouteDashLength').value = route.dashLength || 3;
+            document.getElementById('inputRouteDashGap').value = route.dashGap || 2.8;
+            document.getElementById('inputRouteFlowSpeed').value = route.flowSpeed || 2.8;
+            renderRoutes();
+            updateRoutesList();
+            updatePointsList();
+            updatePolygonsList();
+        }
+
+        function saveRoute() {
+            if (!selectedRoute) return;
+
+            selectedRoute.title = document.getElementById('inputRouteTitle').value.trim() || selectedRoute.title;
+            selectedRoute.label = document.getElementById('inputRouteLabel').value.trim();
+            selectedRoute.color = document.getElementById('inputRouteColor').value;
+            selectedRoute.animation = document.getElementById('inputRouteAnimation').value;
+            selectedRoute.width = parseFloat(document.getElementById('inputRouteWidth').value) || 0.85;
+            selectedRoute.glowWidth = parseFloat(document.getElementById('inputRouteGlowWidth').value) || 2.7;
+            selectedRoute.dashLength = parseFloat(document.getElementById('inputRouteDashLength').value) || 3;
+            selectedRoute.dashGap = parseFloat(document.getElementById('inputRouteDashGap').value) || 2.8;
+            selectedRoute.flowSpeed = parseFloat(document.getElementById('inputRouteFlowSpeed').value) || 2.8;
+
+            renderRoutes();
+            updateRoutesList();
+            refreshExportPreviewIfOpen();
+
+            const btn = event.target;
+            btn.innerHTML = '✅ Đã lưu route!';
+            setTimeout(() => btn.innerHTML = '💾 Lưu route', 1500);
+        }
+
+        function deleteCurrentRoute() {
+            if (!selectedRoute) return;
+
+            routes = routes.filter(route => route.id !== selectedRoute.id);
+            selectedRoute = null;
+            renderRoutes();
+            updateRoutesList();
+            showInspector(null);
+            refreshExportPreviewIfOpen();
+        }
+
+        function selectRouteById(id) {
+            const route = routes.find(item => item.id === id);
+            if (route) selectRoute(route);
+        }
+
+        function deleteRouteById(id) {
+            routes = routes.filter(route => route.id !== id);
+            if (selectedRoute?.id === id) {
+                selectedRoute = null;
+                showInspector(null);
+            }
+            renderRoutes();
+            updateRoutesList();
+            refreshExportPreviewIfOpen();
+        }
+
+        function finishCurrentRoute() {
+            if (!routeDraft || !routeDraft.points?.length) return;
+            if (routeDraft.points.length < 2) {
+                alert('Route cần ít nhất 2 điểm để lưu.');
+                return;
+            }
+
+            const savedRoute = {
+                ...routeDraft,
+                points: routeDraft.points.map(point => ({ x: roundPercent(point.x), y: roundPercent(point.y) }))
+            };
+
+            routes.push(savedRoute);
+            routeDraft = null;
+            renderRoutes();
+            updateRoutesList();
+            refreshExportPreviewIfOpen();
+            selectRoute(savedRoute);
+            updateModeButtons();
+        }
+
+        function finishCurrentPolygon() {
+            if (!currentPolygonDraft.length) return;
+            if (currentPolygonDraft.length < 3) {
+                alert('Polygon cần ít nhất 3 điểm để lưu.');
+                return;
+            }
+
+            const savedPolygon = {
+                id: getNextPolygonId(),
+                title: `Polygon ${String(polygons.length + 1).padStart(2, '0')}`,
+                icon: '⬠',
+                hintLabel: '',
+                showIcon: true,
+                iconEffect: 'none',
+                iconColor: '#4f46e5',
+                iconSizeDesktop: 40,
+                iconSizeMobile: 32,
+                tooltipTitle: '',
+                tooltipBody: '',
+                areaLabel: 'Diện tích',
+                area: '',
+                priceLabel: 'Giá',
+                price: '',
+                thumbnailUrl: '',
+                details: '',
+                fillColor: '#4f46e5',
+                fillOpacity: 0.18,
+                strokeColor: '#4f46e5',
+                strokeWidth: 0.6,
+                displayMode: 'outline-icon',
+                points: currentPolygonDraft.map(point => ({
+                    x: roundPercent(point.x),
+                    y: roundPercent(point.y)
+                }))
+            };
+
+            polygons.push(savedPolygon);
+            currentPolygonDraft = [];
+            renderRoutes();
+            updatePolygonsList();
+            updateModeButtons();
+            selectPolygon(savedPolygon.id);
+        }
+
+        function cancelCurrentPolygon() {
+            if (!currentPolygonDraft.length) return;
+            if (!confirm('Hủy polygon đang vẽ?')) return;
+            currentPolygonDraft = [];
+            selectedPolygon = null;
+            renderRoutes();
+            updatePolygonsList();
+            updateModeButtons();
+        }
+
+        function cancelCurrentRoute(skipConfirm = false) {
+            if (!routeDraft || !routeDraft.points?.length) return;
+            if (!skipConfirm && !confirm('Hủy route đang vẽ?')) return;
+            routeDraft = null;
+            freehandPoints = [];
+            isFreehandDrawing = false;
+            activeFreehandPointerId = null;
+            renderRoutes();
+            updateModeButtons();
+        }
+
+        function startFreehandRouteDraw(event) {
+            if (editorMode !== 'route-freehand') return;
+            if (event.button !== 0) return;
+            if (event.target.closest('.bds-hotspot') || event.target.closest('[data-route-builder-route="true"]')) return;
+
+            const container = document.getElementById('mapContainer');
+            if (!container) return;
+
+            isFreehandDrawing = true;
+            activeFreehandPointerId = event.pointerId;
+            freehandPoints = [getPercentPointFromEvent(event, container)];
+            routeDraft = createDraftRoute();
+            routeDraft.points = freehandPoints.slice();
+            renderRoutes();
+            updateModeButtons();
+
+            if (container.setPointerCapture) {
+                try { container.setPointerCapture(event.pointerId); } catch (error) { }
+            }
+
+            event.preventDefault();
+        }
+
+        function continueFreehandRouteDraw(event) {
+            if (!isFreehandDrawing || event.pointerId !== activeFreehandPointerId) return;
+            const container = document.getElementById('mapContainer');
+            if (!container) return;
+
+            const point = getPercentPointFromEvent(event, container);
+            const previous = freehandPoints[freehandPoints.length - 1];
+            if (!previous || Math.hypot(point.x - previous.x, point.y - previous.y) >= 0.45) {
+                freehandPoints.push(point);
+                routeDraft.points = freehandPoints.slice();
+                renderRoutes();
+                updateMapInstructions();
+            }
+        }
+
+        function stopFreehandRouteDraw(event) {
+            if (!isFreehandDrawing || event.pointerId !== activeFreehandPointerId) return;
+            const container = document.getElementById('mapContainer');
+
+            isFreehandDrawing = false;
+            activeFreehandPointerId = null;
+            if (container && container.releasePointerCapture) {
+                try { container.releasePointerCapture(event.pointerId); } catch (error) { }
+            }
+
+            const simplified = simplifyRoutePoints(freehandPoints, 1);
+            freehandPoints = [];
+            if (routeDraft) {
+                routeDraft.points = simplified;
+                if (routeDraft.points.length < 2) {
+                    routeDraft = null;
+                    renderRoutes();
+                    updateModeButtons();
+                    return;
+                }
+            }
+
+            finishCurrentRoute();
+            updateModeButtons();
+        }
 
         function initColorGrid() {
             const grid = document.getElementById('colorGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
             colorPalette.forEach(color => {
                 const swatch = document.createElement('div');
                 swatch.className = 'color-swatch';
@@ -1303,11 +3187,77 @@
             });
         }
 
+        function normalizeHexColor(value) {
+            const raw = String(value || '').trim().replace(/^#/, '');
+            if (/^[0-9a-fA-F]{3}$/.test(raw)) {
+                return `#${raw.split('').map(char => char + char).join('').toUpperCase()}`;
+            }
+            if (/^[0-9a-fA-F]{6}$/.test(raw)) {
+                return `#${raw.toUpperCase()}`;
+            }
+            return '';
+        }
+
+        function syncColorInputs(color) {
+            const normalized = normalizeHexColor(color) || '#4F46E5';
+            const hiddenInput = document.getElementById('inputColor');
+            const codeInput = document.getElementById('inputColorCode');
+            const pickerInput = document.getElementById('inputColorPicker');
+            if (hiddenInput) hiddenInput.value = normalized;
+            if (codeInput) codeInput.value = normalized;
+            if (pickerInput) pickerInput.value = normalized;
+            return normalized;
+        }
+
         function selectColor(color, element) {
             document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
             if (element) element.classList.add('selected');
-            document.getElementById('inputColor').value = color;
+            syncColorInputs(color);
             updateIconPreview();
+        }
+
+        function applyCustomColor(value) {
+            const normalized = normalizeHexColor(value);
+            if (!normalized) return false;
+
+            let selectedSwatch = null;
+            document.querySelectorAll('.color-swatch').forEach((swatch) => {
+                const isMatch = (swatch.dataset.color || '').toUpperCase() === normalized;
+                swatch.classList.toggle('selected', isMatch);
+                if (isMatch) selectedSwatch = swatch;
+            });
+
+            syncColorInputs(normalized);
+            updateIconPreview();
+            return !!selectedSwatch || true;
+        }
+
+        function syncPolygonColorInputGroup(pickerId, codeId, color) {
+            const normalized = normalizeHexColor(color) || '#4F46E5';
+            const pickerInput = document.getElementById(pickerId);
+            const codeInput = document.getElementById(codeId);
+            if (pickerInput) pickerInput.value = normalized;
+            if (codeInput) codeInput.value = normalized;
+            return normalized;
+        }
+
+        function bindPolygonColorInputPair(pickerId, codeId) {
+            const pickerInput = document.getElementById(pickerId);
+            const codeInput = document.getElementById(codeId);
+            if (!pickerInput || !codeInput) return;
+
+            codeInput.addEventListener('change', function () {
+                const normalized = normalizeHexColor(this.value);
+                if (!normalized) {
+                    syncPolygonColorInputGroup(pickerId, codeId, pickerInput.value);
+                    return;
+                }
+                syncPolygonColorInputGroup(pickerId, codeId, normalized);
+            });
+
+            pickerInput.addEventListener('input', function () {
+                syncPolygonColorInputGroup(pickerId, codeId, this.value);
+            });
         }
 
         function updateIconPreview() {
@@ -1351,6 +3301,16 @@
             if (input) input.value = exportMapId;
         }
 
+        function setPortalTooltipEnabled(enabled) {
+            const input = document.getElementById('usePortalTooltip');
+            if (input) input.checked = enabled !== false;
+        }
+
+        function setPreventBackgroundClickEnabled(enabled) {
+            const input = document.getElementById('preventBackgroundClick');
+            if (input) input.checked = enabled !== false;
+        }
+
         function ensureExportMapId() {
             const input = document.getElementById('mapExportId');
             const rawValue = input ? input.value : exportMapId;
@@ -1377,6 +3337,11 @@
                 urlInput.value = currentImageUrl;
             }
 
+            const compactUrlInput = document.getElementById('mapImageUrlInput');
+            if (compactUrlInput) {
+                document.getElementById('mapImageUrlInput').value = currentImageUrl;
+            }
+
             const fileInput = document.getElementById('fileInput');
             if (fileInput && mode === 'url') {
                 fileInput.value = '';
@@ -1384,9 +3349,22 @@
         }
 
         document.getElementById('inputIcon').addEventListener('input', updateIconPreview);
+        document.getElementById('inputColorCode').addEventListener('change', function () {
+            const normalized = normalizeHexColor(this.value);
+            if (!normalized) {
+                syncColorInputs(document.getElementById('inputColor').value);
+                return;
+            }
+            applyCustomColor(normalized);
+        });
+        document.getElementById('inputColorPicker').addEventListener('input', function () {
+            applyCustomColor(this.value);
+        });
+        bindPolygonColorInputPair('inputPolygonIconColor', 'inputPolygonIconColorCode');
+        bindPolygonColorInputPair('inputPolygonFillColor', 'inputPolygonFillColorCode');
+        bindPolygonColorInputPair('inputPolygonStrokeColor', 'inputPolygonStrokeColorCode');
 
-        function loadImageFromUrl() {
-            const url = document.getElementById('imageUrlInput').value.trim();
+        function loadImageFromUrlValue(url) {
             if (!url) { alert('Nhập URL!'); return; }
 
             const img = new Image();
@@ -1397,9 +3375,20 @@
                 document.getElementById('mapWrapper').classList.add('active');
                 document.getElementById('mapDimensions').textContent = `${img.naturalWidth}x${img.naturalHeight}`;
                 setTimeout(showMapHint, 800);
+                refreshExportPreviewIfOpen();
             };
             img.onerror = () => alert('Lỗi tải ảnh!');
             img.src = url;
+        }
+
+        function loadImageFromUrl() {
+            const url = document.getElementById('imageUrlInput').value.trim();
+            loadImageFromUrlValue(url);
+        }
+
+        function applyBackgroundImageUrl() {
+            const url = document.getElementById('mapImageUrlInput').value.trim();
+            loadImageFromUrlValue(url);
         }
 
         function handleFileUpload(event) {
@@ -1417,36 +3406,59 @@
                     document.getElementById('mapWrapper').classList.add('active');
                     document.getElementById('mapDimensions').textContent = `${img.naturalWidth}x${img.naturalHeight}`;
                     setTimeout(showMapHint, 800);
+                    refreshExportPreviewIfOpen();
                 };
             };
             reader.readAsDataURL(file);
         }
 
         document.getElementById('mapContainer').addEventListener('click', function (e) {
-            if (isDragging) return;
+            if (isDragging || isFreehandDrawing) return;
             if (e.target.closest('.bds-hotspot')) return;
+            if (e.target.closest('[data-route-builder-route="true"]')) return;
+            if (e.target.closest('[data-polygon-builder-shape="true"]')) return;
+            if (e.target.closest('[data-polygon-builder-interactive="true"]')) return;
 
-            const rect = this.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            if (editorMode === 'route-click') {
+                if (!routeDraft) routeDraft = createDraftRoute();
+                const point = getPercentPointFromEvent(e, this);
+                routeDraft.points.push(point);
+                renderRoutes();
+                updateModeButtons();
+                return;
+            }
 
-            const percentX = ((x / rect.width) * 100).toFixed(1);
-            const percentY = ((y / rect.height) * 100).toFixed(1);
+            if (editorMode === 'polygon') {
+                const point = getPercentPointFromEvent(e, this);
+                currentPolygonDraft.push(point);
+                selectedPolygon = null;
+                showInspector(null);
+                renderRoutes();
+                updatePolygonsList();
+                updateModeButtons();
+                return;
+            }
 
-            // Get current sizes
+            if (editorMode !== 'point') return;
+
+            const point = getPercentPointFromEvent(e, this);
+
             iconSizeDesktop = parseInt(document.getElementById('iconSizeDesktop').value) || 40;
             iconSizeMobile = parseInt(document.getElementById('iconSizeMobile').value) || 32;
 
             const newPoint = {
                 id: Date.now(),
-                top: parseFloat(percentY),
-                left: parseFloat(percentX),
+                top: point.y,
+                left: point.x,
                 title: `${String(points.length + 1).padStart(2, '0')}`,
                 color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
                 icon: '🏠',
                 effect: 'pulse',
                 area: '',
                 price: '',
+                areaLabel: 'Diện tích',
+                priceLabel: 'Giá',
+                thumbnailUrl: '',
                 details: '',
                 hintLabel: '',
                 sizeDesktop: iconSizeDesktop,
@@ -1457,6 +3469,16 @@
             renderMarker(newPoint, true);
             selectPoint(newPoint);
             updatePointsList();
+            refreshExportPreviewIfOpen();
+        });
+
+        document.addEventListener('pointerdown', function (event) {
+            if (!event.target.closest('.bds-hotspot')) {
+                clearPointTooltipVisibility();
+            }
+            if (!activePolygonId) return;
+            if (event.target.closest('[data-polygon-builder-interactive="true"]')) return;
+            closePolygonTooltip();
         });
 
         // Tính nhãn hiển thị dưới icon
@@ -1472,17 +3494,66 @@
             return point.title ? point.title.substring(0, 10) : null;
         }
 
+        function resolveTooltipFieldLabel(value, fallback) {
+            return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+        }
+
+        function createPointTooltipMarkup(point) {
+            const tooltipTitle = escapeHtml(point.title || 'Chưa đặt tên');
+            const areaLabel = escapeHtml(resolveTooltipFieldLabel(point.areaLabel, 'Diện tích'));
+            const priceLabel = escapeHtml(resolveTooltipFieldLabel(point.priceLabel, 'Giá'));
+            const thumbnailUrl = escapeHtml((point.thumbnailUrl || '').trim());
+            const infoRows = [
+                point.area ? `<span>📐 ${areaLabel}: ${escapeHtml(point.area)}</span>` : '',
+                point.price ? `<span>💰 ${priceLabel}: ${escapeHtml(point.price)}</span>` : '',
+                point.details ? `<span>ℹ️ ${escapeHtml(point.details)}</span>` : ''
+            ].filter(Boolean).join('');
+
+            return `
+            <div class="bds-hotspot-tooltip" data-bds-point-tooltip="true">
+                ${thumbnailUrl ? `<img src="${thumbnailUrl}" alt="${tooltipTitle}" class="tooltip-thumb" loading="lazy">` : ''}
+                <h4 style="border-bottom-color: ${escapeHtml(point.color)};">${tooltipTitle}</h4>
+                ${infoRows ? `<div class="bds-tooltip-info">${infoRows}</div>` : ''}
+            </div>
+        `;
+        }
+
+        function clearPointTooltipVisibility(exceptPointId = null) {
+            document.querySelectorAll('.bds-hotspot[data-point-tooltip-visible="true"]').forEach((marker) => {
+                if (exceptPointId && marker.id === `marker-${exceptPointId}`) return;
+                marker.setAttribute('data-point-tooltip-visible', 'false');
+                marker.classList.remove('active');
+            });
+        }
+
+        function setPointTooltipVisibility(pointId, isVisible) {
+            const marker = document.getElementById(`marker-${pointId}`);
+            if (!marker) return;
+
+            if (isVisible) {
+                clearPointTooltipVisibility(pointId);
+                marker.setAttribute('data-point-tooltip-visible', 'true');
+                marker.classList.add('active');
+                return;
+            }
+
+            marker.setAttribute('data-point-tooltip-visible', 'false');
+            marker.classList.remove('active');
+        }
+
         function renderMarker(point, isNew = false) {
             const container = document.getElementById('mapContainer');
             const existing = document.getElementById(`marker-${point.id}`);
             if (existing) existing.remove();
 
             const marker = document.createElement('div');
-            marker.className = `bds-hotspot effect-${point.effect}`;
+            const edgeClass = point.left < 30 ? ' edge-left' : (point.left > 70 ? ' edge-right' : '');
+            marker.className = `bds-hotspot effect-${point.effect}${edgeClass}`;
             marker.id = `marker-${point.id}`;
             marker.style.top = point.top + '%';
             marker.style.left = point.left + '%';
             marker.style.backgroundColor = point.color;
+            marker.setAttribute('data-point-tooltip-visible', 'false');
 
             const labelText = resolveHintLabel(point);
             marker.innerHTML = `
@@ -1491,6 +3562,7 @@
                 ${point.icon}
             </div>
             ${labelText ? `<div class="bds-hotspot-label">${labelText}</div>` : ''}
+            ${createPointTooltipMarkup(point)}
         `;
 
             marker.addEventListener('mousedown', startDrag);
@@ -1590,11 +3662,17 @@
 
         function selectPoint(point) {
             selectedPoint = point;
+            selectedRoute = null;
+            selectedPolygon = null;
             document.querySelectorAll('.bds-hotspot').forEach(m => m.style.zIndex = '');
-            document.getElementById(`marker-${point.id}`).style.zIndex = '20';
+            clearPointTooltipVisibility(point.id);
+            const currentMarker = document.getElementById(`marker-${point.id}`);
+            if (currentMarker) {
+                currentMarker.style.zIndex = '20';
+                setPointTooltipVisibility(point.id, true);
+            }
 
-            document.getElementById('emptyState').style.display = 'none';
-            document.getElementById('pointForm').style.display = 'block';
+            showInspector('point');
 
             document.getElementById('posTop').textContent = point.top + '%';
             document.getElementById('posLeft').textContent = point.left + '%';
@@ -1602,20 +3680,26 @@
             document.getElementById('inputHintLabel').value = point.hintLabel ?? '';
             document.getElementById('inputArea').value = point.area;
             document.getElementById('inputPrice').value = point.price;
+            document.getElementById('inputAreaLabel').value = resolveTooltipFieldLabel(point.areaLabel, 'Diện tích');
+            document.getElementById('inputPriceLabel').value = resolveTooltipFieldLabel(point.priceLabel, 'Giá');
+            document.getElementById('inputThumbnailUrl').value = point.thumbnailUrl || '';
             document.getElementById('inputDetails').value = point.details;
             document.getElementById('inputIcon').value = point.icon;
-            document.getElementById('inputColor').value = point.color;
+            syncColorInputs(point.color);
             document.getElementById('inputEffect').value = point.effect;
             document.getElementById('iconSizeDesktop').value = point.sizeDesktop || 40;
             document.getElementById('iconSizeMobile').value = point.sizeMobile || 32;
 
             document.querySelectorAll('.color-swatch').forEach(s => {
                 s.classList.remove('selected');
-                if (s.dataset.color === point.color) s.classList.add('selected');
+                if ((s.dataset.color || '').toUpperCase() === (normalizeHexColor(point.color) || '').toUpperCase()) s.classList.add('selected');
             });
 
             updateIconPreview();
             updatePointsList();
+            renderRoutes();
+            updateRoutesList();
+            updatePolygonsList();
         }
 
         function savePoint() {
@@ -1628,12 +3712,16 @@
             selectedPoint.effect = document.getElementById('inputEffect').value;
             selectedPoint.area = document.getElementById('inputArea').value;
             selectedPoint.price = document.getElementById('inputPrice').value;
+            selectedPoint.areaLabel = document.getElementById('inputAreaLabel').value;
+            selectedPoint.priceLabel = document.getElementById('inputPriceLabel').value;
+            selectedPoint.thumbnailUrl = document.getElementById('inputThumbnailUrl').value.trim();
             selectedPoint.details = document.getElementById('inputDetails').value;
             selectedPoint.sizeDesktop = parseInt(document.getElementById('iconSizeDesktop').value) || 40;
             selectedPoint.sizeMobile = parseInt(document.getElementById('iconSizeMobile').value) || 32;
 
             renderMarker(selectedPoint);
-            updatePointsList();
+            selectPoint(selectedPoint);
+            refreshExportPreviewIfOpen();
 
             const btn = event.target;
             btn.innerHTML = '✅ Đã lưu!';
@@ -1647,9 +3735,9 @@
             document.getElementById(`marker-${selectedPoint.id}`).remove();
             selectedPoint = null;
 
-            document.getElementById('pointForm').style.display = 'none';
-            document.getElementById('emptyState').style.display = 'block';
+            showInspector(null);
             updatePointsList();
+            refreshExportPreviewIfOpen();
         }
 
         function updatePointsList() {
@@ -1662,15 +3750,103 @@
             }
 
             list.innerHTML = points.map((p, idx) => `
-            <div class="point-item ${selectedPoint?.id === p.id ? 'active' : ''}" onclick="selectPointById(${p.id})">
+            <div class="point-item ${selectedPoint?.id === p.id ? 'active' : ''}" data-point-id="${p.id}" onclick="selectPointById(${p.id})">
+                <button class="point-drag-handle" type="button" draggable="true" data-point-id="${p.id}" title="Kéo để sắp xếp thứ tự" aria-label="Kéo để sắp xếp thứ tự">⋮⋮</button>
                 <div class="point-icon" style="background: ${p.color};">${p.icon}</div>
                 <div class="point-info">
-                    <div class="point-title">${idx + 1}. ${p.title}</div>
-                    <div class="point-meta">${p.area || 'N/A'} • ${p.sizeDesktop}px/${p.sizeMobile}px</div>
+                    <div class="point-title">${idx + 1}. ${escapeHtml(p.title)}</div>
+                    <div class="point-meta">${escapeHtml(p.area || 'N/A')} • ${p.sizeDesktop}px/${p.sizeMobile}px</div>
                 </div>
                 <button class="delete-btn" onclick="event.stopPropagation(); deletePointById(${p.id})">🗑️</button>
             </div>
         `).join('');
+
+            bindPointListDragHandlers();
+        }
+
+        function clearPointListDragState() {
+            document.querySelectorAll('.point-item.sorting, .point-item.drag-over-top, .point-item.drag-over-bottom').forEach((item) => {
+                item.classList.remove('sorting', 'drag-over-top', 'drag-over-bottom');
+            });
+        }
+
+        function reorderPointsByListDrag(targetId, position) {
+            const sourceId = Number(draggedPointListId);
+            const targetPointId = Number(targetId);
+            if (!sourceId || !targetPointId || sourceId === targetPointId) return;
+
+            const sourceIndex = points.findIndex((point) => point.id === sourceId);
+            const targetIndex = points.findIndex((point) => point.id === targetPointId);
+            if (sourceIndex === -1 || targetIndex === -1) return;
+
+            const [movedPoint] = points.splice(sourceIndex, 1);
+            let insertIndex = targetIndex;
+
+            if (sourceIndex < targetIndex) {
+                insertIndex -= 1;
+            }
+
+            if (position === 'after') {
+                insertIndex += 1;
+            }
+
+            points.splice(insertIndex, 0, movedPoint);
+            updatePointsList();
+            refreshExportPreviewIfOpen();
+        }
+
+        function bindPointListDragHandlers() {
+            const list = document.getElementById('pointsList');
+            if (!list) return;
+
+            list.querySelectorAll('.point-drag-handle').forEach((handle) => {
+                handle.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                });
+
+                handle.addEventListener('dragstart', function (event) {
+                    event.stopPropagation();
+                    draggedPointListId = Number(handle.dataset.pointId);
+                    const item = handle.closest('.point-item');
+                    if (item) item.classList.add('sorting');
+                    if (event.dataTransfer) {
+                        event.dataTransfer.effectAllowed = 'move';
+                        event.dataTransfer.setData('text/plain', String(draggedPointListId));
+                    }
+                });
+
+                handle.addEventListener('dragend', function () {
+                    draggedPointListId = null;
+                    clearPointListDragState();
+                });
+            });
+
+            list.querySelectorAll('.point-item').forEach((item) => {
+                item.addEventListener('dragover', function (event) {
+                    if (!draggedPointListId) return;
+                    event.preventDefault();
+                    const rect = item.getBoundingClientRect();
+                    const position = event.clientY < rect.top + (rect.height / 2) ? 'before' : 'after';
+                    item.classList.remove('drag-over-top', 'drag-over-bottom');
+                    item.classList.add(position === 'before' ? 'drag-over-top' : 'drag-over-bottom');
+                });
+
+                item.addEventListener('dragleave', function () {
+                    item.classList.remove('drag-over-top', 'drag-over-bottom');
+                });
+
+                item.addEventListener('drop', function (event) {
+                    if (!draggedPointListId) return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const rect = item.getBoundingClientRect();
+                    const position = event.clientY < rect.top + (rect.height / 2) ? 'before' : 'after';
+                    const targetId = item.dataset.pointId;
+                    clearPointListDragState();
+                    reorderPointsByListDrag(targetId, position);
+                    draggedPointListId = null;
+                });
+            });
         }
 
         function selectPointById(id) {
@@ -1684,26 +3860,457 @@
 
             if (selectedPoint?.id === id) {
                 selectedPoint = null;
-                document.getElementById('pointForm').style.display = 'none';
-                document.getElementById('emptyState').style.display = 'block';
+                showInspector(null);
             }
             updatePointsList();
+            refreshExportPreviewIfOpen();
         }
 
         function clearAll() {
-            if (points.length === 0) return;
-            if (!confirm(`Xóa tất cả ${points.length} điểm?`)) return;
+            if (points.length === 0 && routes.length === 0 && polygons.length === 0) return;
+            if (!confirm(`Xóa tất cả ${points.length} điểm, ${routes.length} tuyến và ${polygons.length} polygon?`)) return;
 
             points = [];
+            routes = [];
+            polygons = [];
+            routeDraft = null;
+            selectedRoute = null;
+            selectedPolygon = null;
+            currentPolygonDraft = [];
             document.querySelectorAll('.bds-hotspot').forEach(m => m.remove());
+            renderRoutes();
             selectedPoint = null;
-            document.getElementById('pointForm').style.display = 'none';
-            document.getElementById('emptyState').style.display = 'block';
+            showInspector(null);
             updatePointsList();
+            updateRoutesList();
+            updatePolygonsList();
+            refreshExportPreviewIfOpen();
+            updateModeButtons();
+        }
+
+        function createRouteExportPayload(route) {
+            return JSON.stringify({
+                id: route.id,
+                title: route.title,
+                label: route.label,
+                color: route.color,
+                width: route.width,
+                glowWidth: route.glowWidth,
+                animation: route.animation,
+                dashLength: route.dashLength,
+                dashGap: route.dashGap,
+                flowSpeed: route.flowSpeed,
+                points: route.points
+            });
+        }
+
+        function createPolygonExportPayload(polygon) {
+            return JSON.stringify({
+                id: polygon.id,
+                title: polygon.title,
+                icon: polygon.icon,
+                hintLabel: polygon.hintLabel,
+                showIcon: polygon.showIcon !== false,
+                iconEffect: polygon.iconEffect,
+                iconColor: polygon.iconColor,
+                iconSizeDesktop: polygon.iconSizeDesktop,
+                iconSizeMobile: polygon.iconSizeMobile,
+                tooltipTitle: polygon.tooltipTitle,
+                tooltipBody: polygon.tooltipBody,
+                areaLabel: polygon.areaLabel,
+                area: polygon.area,
+                priceLabel: polygon.priceLabel,
+                price: polygon.price,
+                thumbnailUrl: polygon.thumbnailUrl,
+                details: polygon.details,
+                fillColor: polygon.fillColor,
+                fillOpacity: polygon.fillOpacity,
+                strokeColor: polygon.strokeColor,
+                strokeWidth: polygon.strokeWidth,
+                displayMode: polygon.displayMode,
+                points: polygon.points
+            });
+        }
+
+        function getRouteExportClassNames(namespacePrefix) {
+            return {
+                routesSvg: `${namespacePrefix}-routes-svg`,
+                route: `${namespacePrefix}-route`,
+                routeGlow: `${namespacePrefix}-route-glow`,
+                routeCore: `${namespacePrefix}-route-core`,
+                routeFlow: `${namespacePrefix}-route-flow`,
+                routeLabel: `${namespacePrefix}-route-label`,
+                routeSelected: `${namespacePrefix}-route-selected`
+            };
+        }
+
+        function getPolygonExportClassNames(namespacePrefix) {
+            return {
+                polygonsSvg: `${namespacePrefix}-polygons-svg`,
+                polygon: `${namespacePrefix}-polygon`,
+                polygonShape: `${namespacePrefix}-polygon-shape`,
+                polygonAnchor: `${namespacePrefix}-polygon-anchor`,
+                polygonIcon: `${namespacePrefix}-polygon-icon`,
+                polygonLabel: `${namespacePrefix}-polygon-label`,
+                polygonTooltip: `${namespacePrefix}-polygon-tooltip`,
+                polygonTooltipInfo: `${namespacePrefix}-polygon-tooltip-info`,
+                polygonTooltipDivider: `${namespacePrefix}-polygon-tooltip-divider`
+            };
+        }
+
+        function createRouteExportMarkup(routeClassNames, routes) {
+            if (!routes.length) return '';
+
+            return `
+  <svg class="${routeClassNames.routesSvg}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+${routes.map((route) => {
+                const routePayload = encodeDataAttribute(createRouteExportPayload(route));
+                const routePath = buildSmoothPath(route.points || []);
+                if (!routePath) return '';
+                const labelPosition = getRouteLabelPosition(route);
+                const labelText = escapeHtml(getRouteDisplayText(route));
+
+                return `    <g class="${routeClassNames.route}" data-bds-route="true" data-route-id="${route.id}" data-route-payload="${routePayload}" data-route-animation="${route.animation || 'brand-flow'}" style="--route-color:${route.color || defaultRouteColor};--route-width:${route.width || 0.85};--route-glow:${route.glowWidth || 2.7};--route-dash-length:${route.dashLength || 3};--route-dash-gap:${route.dashGap || 2.8};--route-flow-speed:${route.flowSpeed || 2.8}s;">
+      <path class="${routeClassNames.routeGlow}" d="${routePath}"></path>
+      <path class="${routeClassNames.routeCore}" d="${routePath}"></path>
+      <path class="${routeClassNames.routeFlow}" d="${routePath}"></path>
+      ${labelPosition ? `<text class="${routeClassNames.routeLabel}" x="${roundPercent(labelPosition.x + 1.2)}" y="${roundPercent(labelPosition.y - 1.2)}">${labelText}</text>` : ''}
+    </g>`;
+            }).filter(Boolean).join('\n')}
+  </svg>`;
+        }
+
+        function createRouteExportCss(routeClassNames, animationNames) {
+            return `
+.${routeClassNames.routesSvg} {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.${routeClassNames.route} {
+  pointer-events: none;
+}
+
+.${routeClassNames.routeGlow},
+.${routeClassNames.routeCore},
+.${routeClassNames.routeFlow} {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.${routeClassNames.routeGlow} {
+  stroke: color-mix(in srgb, var(--route-color, ${defaultRouteColor}) 55%, white 10%);
+  stroke-width: var(--route-glow, 2.7);
+  opacity: 0.36;
+  filter: drop-shadow(0 0 12px rgba(255,108,183,0.34));
+}
+
+.${routeClassNames.routeCore} {
+  stroke: var(--route-color, ${defaultRouteColor});
+  stroke-width: var(--route-width, 0.85);
+}
+
+.${routeClassNames.routeFlow} {
+  stroke: color-mix(in srgb, var(--route-color, ${defaultRouteColor}) 35%, white 65%);
+  stroke-width: calc(var(--route-width, 0.85) * 0.42);
+  stroke-dasharray: var(--route-dash-length, 3) var(--route-dash-gap, 2.8);
+  animation: ${animationNames.routeFlow} var(--route-flow-speed, 2.8s) linear infinite;
+}
+
+.${routeClassNames.route}[data-route-animation="brand-flow-soft"] .${routeClassNames.routeGlow} {
+  opacity: 0.24;
+  filter: drop-shadow(0 0 8px rgba(255,108,183,0.2));
+}
+
+.${routeClassNames.route}[data-route-animation="brand-flow-soft"] .${routeClassNames.routeFlow} {
+  opacity: 0.9;
+}
+
+.${routeClassNames.routeLabel} {
+  fill: #ffe2f1;
+  font-size: 2.2px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  paint-order: stroke;
+  stroke: rgba(10,18,35,0.55);
+  stroke-width: 0.22;
+}
+
+@keyframes ${animationNames.routeFlow} {
+  to { stroke-dashoffset: -18; }
+}`;
+        }
+
+        function createPolygonExportMarkup(polygonClassNames, polygons, sharedClassNames) {
+            if (!polygons.length) return '';
+
+            const polygonShapes = polygons.map((polygon) => {
+                const polygonPayload = encodeDataAttribute(createPolygonExportPayload(polygon));
+                const polygonPath = buildPolygonPath(polygon.points || []);
+                if (!polygonPath) return '';
+                const displayMode = getPolygonDisplayMode(polygon);
+                const isFillOutlineIcon = displayMode === 'fill-outline-icon';
+                const isIconOnly = displayMode === 'icon-only';
+                const fillOpacity = clamp(parseFloat(polygon.fillOpacity), 0, 1);
+                const resolvedFillOpacity = Number.isFinite(fillOpacity) ? fillOpacity : 0.18;
+                const fillColor = polygon.fillColor || '#4f46e5';
+                const strokeColor = polygon.strokeColor || fillColor || '#4f46e5';
+
+                return `    <path class="${polygonClassNames.polygonShape} bds-polygon-target bds-polygon-target-${polygon.id}" data-bds-polygon="true" data-bds-polygon-interactive="true" data-polygon-id="${polygon.id}" data-polygon-payload="${polygonPayload}" data-polygon-display-mode="${displayMode}" data-polygon-tooltip-visible="false" fill="${isFillOutlineIcon ? fillColor : 'transparent'}" fill-opacity="${isFillOutlineIcon ? String(resolvedFillOpacity) : '0'}" stroke="${isIconOnly ? 'transparent' : strokeColor}" stroke-width="${Math.max(0.1, parseFloat(polygon.strokeWidth) || 0.6)}" style="--polygon-fill-color:${fillColor};--polygon-fill-opacity:${resolvedFillOpacity};--polygon-stroke-color:${strokeColor};--polygon-stroke-width:${Math.max(0.1, parseFloat(polygon.strokeWidth) || 0.6)};pointer-events:${isIconOnly ? 'none' : 'all'};" d="${polygonPath}"></path>`;
+            }).filter(Boolean).join('\n');
+
+            const polygonAnchors = polygons.map((polygon) => {
+                const centroid = getPolygonCentroid(polygon.points || []);
+                if (!centroid) return '';
+
+                const tooltipTitle = escapeHtml(polygon.tooltipTitle || polygon.title || `Polygon ${polygon.id}`);
+                const tooltipBody = escapeHtml(polygon.tooltipBody || 'Chưa có mô tả cho polygon này.');
+                const areaLabel = resolveTooltipFieldLabel(polygon.areaLabel, 'Diện tích');
+                const priceLabel = resolveTooltipFieldLabel(polygon.priceLabel, 'Giá');
+                const thumbnailUrl = (polygon.thumbnailUrl || '').trim();
+                const showIcon = polygon.showIcon !== false && !!(polygon.icon || '').trim();
+                const hintLabel = escapeHtml(resolvePolygonHintLabel(polygon));
+                const polygonIcon = escapeHtml((polygon.icon || '⬠').trim() || '⬠');
+                const polygonEffectClass = `effect-${polygon.iconEffect || 'none'}`;
+                const iconColor = polygon.iconColor || polygon.fillColor || '#4f46e5';
+                const iconSizeDesktop = polygon.iconSizeDesktop || 40;
+                const iconSizeMobile = polygon.iconSizeMobile || 32;
+                const polygonTooltipInfoRows = [
+                    polygon.area ? `        <span>📐 ${areaLabel}: ${polygon.area}</span>\n` : '',
+                    polygon.price ? `        <span>💰 ${priceLabel}: ${polygon.price}</span>\n` : '',
+                    polygon.details ? `        <span>ℹ️ ${polygon.details}</span>\n` : ''
+                ].filter(Boolean).join('');
+                const polygonTooltipBodyMarkup = tooltipBody ? `      <p>${tooltipBody}</p>\n` : '';
+                const polygonTooltipDividerMarkup = (polygonTooltipInfoRows || polygonTooltipBodyMarkup)
+                    ? `      <div class="${polygonClassNames.polygonTooltipDivider}"></div>\n`
+                    : '';
+
+                return `  <div class="${polygonClassNames.polygonAnchor} ${polygonEffectClass} bds-polygon-target bds-polygon-target-${polygon.id}" data-bds-polygon-anchor="true" data-bds-polygon-interactive="true" data-polygon-id="${polygon.id}" data-polygon-tooltip-visible="false" style="left:${centroid.x}%;top:${centroid.y}%;--polygon-icon-color:${iconColor};--polygon-icon-size:${iconSizeDesktop}px;--polygon-icon-size-mobile:${iconSizeMobile}px;">
+    ${showIcon ? `<div class="${sharedClassNames.tapHint}" aria-hidden="true">👆</div>` : ''}
+    ${showIcon ? `<button type="button" class="${polygonClassNames.polygonIcon}" data-bds-polygon-interactive="true" data-polygon-id="${polygon.id}">${polygonIcon}</button>` : ''}
+    ${hintLabel ? `<div class="${polygonClassNames.polygonLabel}">${hintLabel}</div>` : ''}
+    <div class="${polygonClassNames.polygonTooltip}" data-bds-polygon-tooltip="true" data-bds-polygon-interactive="true" data-polygon-id="${polygon.id}" data-area-label="${encodeDataAttribute(areaLabel)}" data-price-label="${encodeDataAttribute(priceLabel)}" data-thumbnail-url="${encodeDataAttribute(thumbnailUrl)}">
+      <h4>${tooltipTitle}</h4>
+      ${thumbnailUrl ? `<img src="${encodeDataAttribute(thumbnailUrl)}" alt="${tooltipTitle}" class="tooltip-thumb" loading="lazy">` : ''}
+${polygonTooltipDividerMarkup}${polygonTooltipInfoRows ? `      <div class="${polygonClassNames.polygonTooltipInfo}">
+${polygonTooltipInfoRows}      </div>
+` : ''}${polygonTooltipBodyMarkup}    
+    </div>
+  </div>`;
+            }).filter(Boolean).join('\n');
+
+            return `
+  <svg class="${polygonClassNames.polygonsSvg}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+${polygonShapes}
+  </svg>
+${polygonAnchors}`;
+        }
+
+        function createPolygonExportCss(polygonClassNames) {
+            return `
+.${polygonClassNames.polygonsSvg} {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.${polygonClassNames.polygonShape} {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: all;
+  cursor: pointer;
+  transition: fill-opacity 0.18s ease, stroke-width 0.18s ease, filter 0.18s ease;
+}
+
+.${polygonClassNames.polygonShape}[data-polygon-display-mode="icon-only"] {
+  pointer-events: none;
+}
+
+.${polygonClassNames.polygonShape}[data-polygon-tooltip-visible="true"],
+.${polygonClassNames.polygonShape}.${polygonClassNames.polygonTooltipVisible} {
+  fill: var(--polygon-fill-color) !important;
+  fill-opacity: var(--polygon-fill-opacity) !important;
+  stroke: var(--polygon-stroke-color) !important;
+  stroke-width: var(--polygon-stroke-width) !important;
+}
+
+.${polygonClassNames.polygonShape}[data-polygon-tooltip-visible="true"],
+.${polygonClassNames.polygonShape}.${polygonClassNames.polygonTooltipVisible} {
+  filter: drop-shadow(0 0 12px rgba(79, 70, 229, 0.3));
+}
+
+.${polygonClassNames.polygonAnchor} {
+  position: absolute;
+  width: var(--polygon-icon-size);
+  height: var(--polygon-icon-size);
+  transform: translate(-50%, -50%);
+  z-index: 12;
+  --polygon-icon-size: 40px;
+  --polygon-icon-size-mobile: 32px;
+}
+
+.${polygonClassNames.polygonIcon} {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--polygon-icon-size);
+  height: var(--polygon-icon-size);
+  min-width: var(--polygon-icon-size);
+  min-height: var(--polygon-icon-size);
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--polygon-icon-color, #4f46e5);
+  color: white;
+  font-size: calc(var(--polygon-icon-size) * 0.35);
+  line-height: 1;
+  font-weight: 600;
+  z-index: 2;
+  border: 3px solid white;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s;
+}
+
+.${polygonClassNames.polygonAnchor}[data-polygon-tooltip-visible="true"] .${polygonClassNames.polygonIcon},
+.${polygonClassNames.polygonAnchor}:hover .${polygonClassNames.polygonIcon} {
+  transform: translate(-50%, -50%) scale(1.06);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.${polygonClassNames.polygonLabel} {
+  position: absolute;
+  top: calc(var(--polygon-icon-size) + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 2px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 15;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(2px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.${polygonClassNames.polygonTooltip} {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--polygon-icon-size) + 14px);
+  width: min(260px, 42vw);
+  min-width: 180px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.98);
+  color: #222;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,0,0,0.1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 8px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.${polygonClassNames.polygonTooltip}::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: rgba(255,255,255,0.98);
+}
+
+.${polygonClassNames.polygonTooltip} h4 {
+  margin: 0 0 10px 0;
+  color: #222;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.${polygonClassNames.polygonTooltip} p {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #555;
+  opacity: 1;
+  margin: 8px 0 0;
+}
+
+.${polygonClassNames.polygonTooltipDivider} {
+  width: 100%;
+  height: 3px;
+  margin: 10px 0;
+  border-radius: 999px;
+  background: var(--polygon-icon-color, #4f46e5);
+}
+
+.${polygonClassNames.polygonTooltipInfo} {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #555;
+  opacity: 1;
+}
+
+.${polygonClassNames.polygonTooltipInfo} span {
+  display: block;
+}
+
+.${polygonClassNames.polygonAnchor}[data-polygon-tooltip-visible="true"] .${polygonClassNames.polygonTooltip},
+.${polygonClassNames.polygonAnchor}.${polygonClassNames.polygonTooltipVisible} .${polygonClassNames.polygonTooltip},
+.${polygonClassNames.polygonAnchor}:hover .${polygonClassNames.polygonTooltip} {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+  .${polygonClassNames.polygonAnchor} {
+    --polygon-icon-size: var(--polygon-icon-size-mobile);
+  }
+}`;
+        }
+
+        function minifyExportHtml(html) {
+            if (!html) return '';
+            return html
+                .split('\n')
+                .map(line => line.trim())
+                .filter(Boolean)
+                .join('');
         }
 
         function refreshExportPreview() {
-            if (points.length === 0) return false;
+            if (points.length === 0 && routes.length === 0 && polygons.length === 0) return false;
 
             let imgUrl = currentImageSrc;
             if (!imgUrl) {
@@ -1713,6 +4320,10 @@
             }
 
             const includeLegend = document.getElementById('includeLegend').checked;
+            const includeLabelToggle = document.getElementById('includeLabelToggle').checked;
+            const shouldMinifyHtml = document.getElementById('minifyHtmlExport').checked;
+            const usePortalTooltip = document.getElementById('usePortalTooltip').checked;
+            const preventBackgroundClick = document.getElementById('preventBackgroundClick').checked;
             const mapId = ensureExportMapId();
             const namespacePrefix = `bds-${mapId}`;
 
@@ -1723,11 +4334,15 @@
 
             const classNames = {
                 wrapper: `${namespacePrefix}-map-wrapper`,
+                watermark: `${namespacePrefix}-watermark`,
                 hotspot: `${namespacePrefix}-hotspot`,
                 hotspotIcon: `${namespacePrefix}-hotspot-icon`,
                 hotspotLabel: `${namespacePrefix}-hotspot-label`,
                 tooltip: `${namespacePrefix}-tooltip`,
                 tooltipInfo: `${namespacePrefix}-tooltip-info`,
+                portalTooltip: `${namespacePrefix}-portal-tooltip`,
+                portalTooltipVisible: `${namespacePrefix}-portal-tooltip-visible`,
+                portalReady: `${namespacePrefix}-portal-ready`,
                 tapHint: `${namespacePrefix}-tap-hint`,
                 labelToggle: `${namespacePrefix}-label-toggle`,
                 toggleDot: `${namespacePrefix}-toggle-dot`,
@@ -1743,6 +4358,9 @@
                 edgeLeft: `${namespacePrefix}-edge-left`,
                 edgeRight: `${namespacePrefix}-edge-right`
             };
+
+            const routeClassNames = getRouteExportClassNames(namespacePrefix);
+            const polygonClassNames = getPolygonExportClassNames(namespacePrefix);
 
             const effectClasses = {
                 pulse: `${namespacePrefix}-effect-pulse`,
@@ -1761,6 +4379,7 @@
                 blink: `${namespacePrefix}-blink`,
                 bounce: `${namespacePrefix}-bounce`,
                 rotate: `${namespacePrefix}-rotate`,
+                routeFlow: `${namespacePrefix}-route-flow`,
                 legendZoom: `${namespacePrefix}-legend-zoom`,
                 legendShake: `${namespacePrefix}-legend-shake`,
                 tapBounce: `${namespacePrefix}-tap-bounce`,
@@ -1841,10 +4460,30 @@
 }
 
 .${effectClasses.heartbeat} .${classNames.hotspotIcon} { animation: ${animationNames.heartbeat} 1.5s ease-in-out infinite; }
+.${effectClasses.heartbeat} .${polygonClassNames.polygonIcon} { animation: ${animationNames.heartbeat} 1.5s ease-in-out infinite; }
 .${effectClasses.shake} .${classNames.hotspotIcon} { animation: ${animationNames.shake} 0.5s ease-in-out infinite; }
+.${effectClasses.shake} .${polygonClassNames.polygonIcon} { animation: ${animationNames.shake} 0.5s ease-in-out infinite; }
 .${effectClasses.blink} .${classNames.hotspotIcon} { animation: ${animationNames.blink} 1s ease-in-out infinite; }
+.${effectClasses.blink} .${polygonClassNames.polygonIcon} { animation: ${animationNames.blink} 1s ease-in-out infinite; }
 .${effectClasses.bounce} .${classNames.hotspotIcon} { animation: ${animationNames.bounce} 0.8s ease-in-out infinite; }
-.${effectClasses.rotate} .${classNames.hotspotIcon} { animation: ${animationNames.rotate} 3s linear infinite; }`;
+.${effectClasses.bounce} .${polygonClassNames.polygonIcon} { animation: ${animationNames.bounce} 0.8s ease-in-out infinite; }
+.${effectClasses.rotate} .${classNames.hotspotIcon} { animation: ${animationNames.rotate} 3s linear infinite; }
+.${effectClasses.rotate} .${polygonClassNames.polygonIcon} { animation: ${animationNames.rotate} 3s linear infinite; }
+
+.${polygonClassNames.polygonAnchor}.${effectClasses.pulse}::before {
+  content: '';
+  position: absolute;
+  width: var(--polygon-icon-size, 40px);
+  height: var(--polygon-icon-size, 40px);
+  border-radius: 50%;
+  background: var(--polygon-icon-color, #4f46e5);
+  opacity: 0.4;
+  animation: ${animationNames.gentlePulse} 2s infinite;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+}`;
 
             let hotspotsHtml = '';
             points.forEach((point) => {
@@ -1854,6 +4493,9 @@
                 const sizeDesktop = point.sizeDesktop || defaultDesktop;
                 const sizeMobile = point.sizeMobile || defaultMobile;
                 const exportLabel = resolveExportLabel(point);
+                const areaLabel = resolveTooltipFieldLabel(point.areaLabel, 'Diện tích');
+                const priceLabel = resolveTooltipFieldLabel(point.priceLabel, 'Giá');
+                const thumbnailUrl = (point.thumbnailUrl || '').trim();
                 const effectClass = effectClasses[point.effect] || effectClasses.none;
                 const hotspotId = `${wrapperId}-hotspot-${point.id}`;
 
@@ -1866,10 +4508,11 @@
     <div class="${classNames.tapHint}" aria-hidden="true">👆</div>
     <div class="${classNames.hotspotIcon}" data-bds-hotspot-icon="true" style="background:${point.color};width:var(--icon-size);height:var(--icon-size);font-size:calc(var(--icon-size)*0.35);">${point.icon}</div>
     ${exportLabel ? `<div class="${classNames.hotspotLabel}" data-bds-hotspot-label="true">${exportLabel}</div>` : ''}
-    <div class="${classNames.tooltip}" data-bds-tooltip="true">
-      <h4 style="border-color:${point.color};">${point.title}</h4>
+    <div class="${classNames.tooltip}" data-bds-tooltip="true" data-area-label="${encodeDataAttribute(areaLabel)}" data-price-label="${encodeDataAttribute(priceLabel)}" data-thumbnail-url="${encodeDataAttribute(thumbnailUrl)}">
+      ${thumbnailUrl ? `<img src="${encodeDataAttribute(thumbnailUrl)}" alt="${encodeDataAttribute(point.title)}" class="tooltip-thumb" loading="lazy">` : ''}
+      <h4 style="border-bottom-color:${point.color};">${point.title}</h4>
       <div class="${classNames.tooltipInfo}">
-${point.area ? `        <span>📐 Diện tích: ${point.area}</span>\n` : ''}${point.price ? `        <span>💰 Giá: ${point.price}</span>\n` : ''}${point.details ? `        <span>ℹ️ ${point.details}</span>\n` : ''}      </div>
+${point.area ? `        <span>📐 ${areaLabel}: ${point.area}</span>\n` : ''}${point.price ? `        <span>💰 ${priceLabel}: ${point.price}</span>\n` : ''}${point.details ? `        <span>ℹ️ ${point.details}</span>\n` : ''}      </div>
     </div>
   </div>`;
             });
@@ -1877,6 +4520,10 @@ ${point.area ? `        <span>📐 Diện tích: ${point.area}</span>\n` : ''}${
             let legendHtml = '';
             let legendCss = '';
             let legendJs = '';
+            const routesHtml = createRouteExportMarkup(routeClassNames, routes);
+            const polygonsHtml = createPolygonExportMarkup(polygonClassNames, polygons, classNames);
+            const routeCss = createRouteExportCss(routeClassNames, animationNames);
+            const polygonCss = createPolygonExportCss(polygonClassNames);
 
             if (includeLegend) {
                 const uniqueItems = [];
@@ -1979,19 +4626,31 @@ ${uniqueItems.map(point => `  <div class="${classNames.legendItem}" data-target=
 
         if (hotspot) {
           clearHotspotState();
-          hotspot.classList.add(legendActiveClass);
-          hotspot.style.zIndex = '25';
-          hotspot.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-
-          setTimeout(function() {
-            hotspot.classList.remove(legendActiveClass);
-            hotspot.style.zIndex = '10';
-          }, 2000);
+          hotspot.classList.add(activeClass);
+          hotspot.style.zIndex = '20';
+          if (typeof showTooltipForHotspot === 'function') {
+            showTooltipForHotspot(hotspot);
+          }
         }
       });
     });
   }`;
             }
+
+            const exportData = {
+                version: 4,
+                imageSrc: imgUrl,
+                mapId,
+                options: {
+                    includeLegend,
+                    includeLabelToggle,
+                    usePortalTooltip,
+                    preventBackgroundClick
+                },
+                points: points,
+                routes: routes,
+                polygons: polygons
+            };
 
             const fullCode = `<!-- BDS Interactive Map - ${mapId} -->
 <style>
@@ -2001,6 +4660,11 @@ ${uniqueItems.map(point => `  <div class="${classNames.legendItem}" data-target=
   max-width: 1400px;
   margin: 0 auto;
   font-family: 'Segoe UI', system-ui, sans-serif;
+  overflow: visible !important;
+}
+
+.${classNames.wrapper}.${classNames.portalReady} .${classNames.tooltip} {
+  display: none !important;
 }
 
 .${classNames.wrapper} > img {
@@ -2008,9 +4672,27 @@ ${uniqueItems.map(point => `  <div class="${classNames.legendItem}" data-target=
   height: auto;
   display: block;
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
   position: relative;
   z-index: 1;
+}
+
+.${classNames.watermark} {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  z-index: 5;
+  opacity: 0.65;
+  color: rgba(255,255,255,0.92);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.38);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  white-space: nowrap;
+  font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
 .${classNames.hotspot} {
@@ -2105,7 +4787,8 @@ ${effectCss}
 }
 
 .${classNames.hotspot}:hover .${classNames.hotspotLabel},
-.${classNames.hotspot}.${classNames.active} .${classNames.hotspotLabel} {
+.${classNames.hotspot}.${classNames.active} .${classNames.hotspotLabel},
+.${classNames.hotspot}.${classNames.legendActive} .${classNames.hotspotLabel} {
   opacity: 0;
 }
 
@@ -2227,7 +4910,7 @@ ${effectCss}
   opacity: 0;
   transition: all 0.3s;
   pointer-events: none;
-  z-index: 30;
+  z-index: 9999;
   border: 1px solid rgba(0,0,0,0.1);
 }
 
@@ -2262,19 +4945,22 @@ ${effectCss}
 }
 
 .${classNames.hotspot}:hover .${classNames.tooltip},
-.${classNames.hotspot}.${classNames.active} .${classNames.tooltip} {
+.${classNames.hotspot}.${classNames.active} .${classNames.tooltip},
+.${classNames.hotspot}.${classNames.legendActive} .${classNames.tooltip} {
   opacity: 1;
   pointer-events: auto;
   transform: translateX(-50%) scale(1);
 }
 
 .${classNames.hotspot}.${classNames.edgeLeft}:hover .${classNames.tooltip},
-.${classNames.hotspot}.${classNames.edgeLeft}.${classNames.active} .${classNames.tooltip} {
+.${classNames.hotspot}.${classNames.edgeLeft}.${classNames.active} .${classNames.tooltip},
+.${classNames.hotspot}.${classNames.edgeLeft}.${classNames.legendActive} .${classNames.tooltip} {
   transform: translateX(0) scale(1);
 }
 
 .${classNames.hotspot}.${classNames.edgeRight}:hover .${classNames.tooltip},
-.${classNames.hotspot}.${classNames.edgeRight}.${classNames.active} .${classNames.tooltip} {
+.${classNames.hotspot}.${classNames.edgeRight}.${classNames.active} .${classNames.tooltip},
+.${classNames.hotspot}.${classNames.edgeRight}.${classNames.legendActive} .${classNames.tooltip} {
   transform: translateX(0) scale(1);
 }
 
@@ -2283,7 +4969,8 @@ ${effectCss}
   color: #222;
   font-size: 15px;
   font-weight: 700;
-  border-bottom: 3px solid;
+  border-bottom-width: 3px;
+  border-bottom-style: solid;
   padding-bottom: 6px;
 }
 
@@ -2296,6 +4983,95 @@ ${effectCss}
 .${classNames.tooltipInfo} span {
   display: block;
   margin: 4px 0;
+}
+
+.tooltip-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  min-height: 78px;
+  max-height: 136px;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px;
+  margin: 0 0 10px 0;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #eef2f7;
+}
+
+.${classNames.portalTooltip} h4 {
+  margin: 0 0 8px 0 !important;
+  color: #222 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  border-bottom-width: 3px !important;
+  border-bottom-style: solid !important;
+  padding: 0 0 6px 0 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-family: 'Segoe UI', system-ui, sans-serif !important;
+}
+
+.${classNames.portalTooltip} .${classNames.tooltipInfo} {
+  font-size: 13px !important;
+  color: #555 !important;
+  line-height: 1.5 !important;
+  font-family: 'Segoe UI', system-ui, sans-serif !important;
+}
+
+.${classNames.portalTooltip} .${classNames.tooltipInfo} span {
+  display: block;
+  margin: 4px 0;
+}
+
+.${classNames.portalTooltip} {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  max-width: calc(100vw - 24px);
+  background: rgba(255,255,255,0.98);
+  padding: 14px;
+  border-radius: 10px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  border: 1px solid rgba(0,0,0,0.1);
+  z-index: 2147483647;
+  transform: translate3d(0, 8px, 0) scale(0.98);
+  transform-origin: center bottom;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+  --portal-arrow-left: 50%;
+}
+
+.${classNames.portalTooltip}::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: var(--portal-arrow-left);
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: rgba(255,255,255,0.98);
+}
+
+.${classNames.portalTooltip}[data-placement="bottom"] {
+  transform: translate3d(0, -8px, 0) scale(0.98);
+  transform-origin: center top;
+}
+
+.${classNames.portalTooltip}[data-placement="bottom"]::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: rgba(255,255,255,0.98);
+}
+
+.${classNames.portalTooltip}.${classNames.portalTooltipVisible} {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(0, 0, 0) scale(1);
 }
 
 @media (max-width: 768px) {
@@ -2323,19 +5099,49 @@ ${effectCss}
     bottom: calc(var(--icon-size-mobile, 32px) + 8px);
   }
 
+  .${classNames.portalTooltip} {
+    width: min(260px, calc(100vw - 24px));
+    padding: 12px;
+  }
+
+  .tooltip-thumb {
+    min-height: 72px;
+    max-height: 104px;
+    margin-bottom: 8px;
+  }
+
+  .${classNames.watermark} {
+    left: 12px;
+    bottom: 12px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+  }
+
   .${classNames.hotspot}.${classNames.edgeLeft} .${classNames.tooltip} { left: -15px; }
   .${classNames.hotspot}.${classNames.edgeRight} .${classNames.tooltip} { right: -15px; left: auto; }
 }
+
+@media (min-width: 769px) and (max-width: 1199px) {
+  .tooltip-thumb {
+    min-height: 84px;
+    max-height: 120px;
+  }
+}
 ${legendCss}
+${routeCss}
+${polygonCss}
 </style>
 
-<div class="${classNames.wrapper}" id="${wrapperId}" data-bds-map-root="true" data-map-id="${mapId}" style="position:relative;">
+<div class="${classNames.wrapper}" id="${wrapperId}" data-bds-map-root="true" data-map-id="${mapId}" data-bds-tooltip-mode="${usePortalTooltip ? 'portal' : 'inline'}" data-bds-prevent-bg-click="${preventBackgroundClick ? 'true' : 'false'}" style="position:relative;">
   <img src="${imgUrl}" alt="M\u1eb7t b\u1eb1ng d\u1ef1 \u00e1n">
+  <div class="${classNames.watermark}" data-bds-watermark="true" aria-hidden="true"></div>
+  ${polygonsHtml}
+  ${routesHtml}
   ${hotspotsHtml}
-  <button type="button" class="${classNames.labelToggle}" id="${toggleId}" title="B\u1eadt/t\u1eaft nh\u00e3n g\u1ee3i \u00fd">
+  ${includeLabelToggle ? `<button type="button" class="${classNames.labelToggle}" id="${toggleId}" title="B\u1eadt/t\u1eaft nh\u00e3n g\u1ee3i \u00fd">
     <span class="${classNames.toggleDot}"></span>
     <span id="${toggleTextId}">\ud83c\udff7\ufe0f Nh\u00e3n</span>
-  </button>
+  </button>` : ''}
 </div>
 ${legendHtml}
 
@@ -2347,11 +5153,124 @@ ${legendHtml}
   var legend = document.getElementById('${legendId}');
   var toggleBtn = document.getElementById('${toggleId}');
   var toggleText = document.getElementById('${toggleTextId}');
+  var watermarkEl = wrapper.querySelector('[data-bds-watermark="true"]');
   var hotspots = Array.prototype.slice.call(wrapper.querySelectorAll('.${classNames.hotspot}'));
+  var polygonShapes = Array.prototype.slice.call(wrapper.querySelectorAll('.bds-polygon-target').length ? wrapper.querySelectorAll('path.bds-polygon-target') : wrapper.querySelectorAll('[data-bds-polygon="true"]'));
+  var polygonAnchors = Array.prototype.slice.call(wrapper.querySelectorAll('.bds-polygon-target').length ? wrapper.querySelectorAll('div.bds-polygon-target') : wrapper.querySelectorAll('[data-bds-polygon-anchor="true"]'));
   var activeClass = '${classNames.active}';
   var legendActiveClass = '${classNames.legendActive}';
   var labelsHiddenClass = '${classNames.labelsHidden}';
   var hintsDismissedClass = '${classNames.hintsDismissed}';
+  var portalReadyClass = '${classNames.portalReady}';
+  var usePortalTooltip = ${usePortalTooltip ? 'true' : 'false'};
+  var preventBackgroundClick = ${preventBackgroundClick ? 'true' : 'false'};
+  var portalTooltip = null;
+  var portalHotspot = null;
+  var portalTicking = false;
+  var activeHotspotId = null;
+  var activePolygonId = null;
+
+  if (watermarkEl) {
+    var watermarkChars = [110, 118, 46, 76, 68, 80];
+    watermarkEl.textContent = watermarkChars.reverse().map(function(code) {
+      return String.fromCharCode(code);
+    }).join('');
+  }
+
+  if (usePortalTooltip) {
+    wrapper.classList.add(portalReadyClass);
+  }
+
+  function ensurePortalTooltip() {
+    if (!usePortalTooltip) return null;
+    if (portalTooltip && portalTooltip.parentNode) return portalTooltip;
+
+    portalTooltip = document.createElement('div');
+    portalTooltip.className = '${classNames.portalTooltip}';
+    portalTooltip.setAttribute('data-map-id', '${mapId}');
+    portalTooltip.setAttribute('data-placement', 'top');
+    document.body.appendChild(portalTooltip);
+    return portalTooltip;
+  }
+
+  function updatePortalTooltipPosition() {
+    if (!usePortalTooltip || !portalTooltip || !portalHotspot) return;
+
+    var rect = portalHotspot.getBoundingClientRect();
+    var tooltipRect = portalTooltip.getBoundingClientRect();
+    var tooltipWidth = tooltipRect.width || 240;
+    var tooltipHeight = tooltipRect.height || 0;
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    var margin = 12;
+    var gap = 14;
+    var left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+
+    left = Math.max(margin, Math.min(left, viewportWidth - tooltipWidth - margin));
+
+    var top = rect.top - tooltipHeight - gap;
+    var placement = 'top';
+    if (top < margin) {
+      top = Math.min(viewportHeight - tooltipHeight - margin, rect.bottom + gap);
+      placement = 'bottom';
+    }
+
+    portalTooltip.style.left = left + 'px';
+    portalTooltip.style.top = top + 'px';
+    portalTooltip.setAttribute('data-placement', placement);
+
+    var arrowLeft = rect.left + (rect.width / 2) - left;
+    arrowLeft = Math.max(18, Math.min(arrowLeft, tooltipWidth - 18));
+    portalTooltip.style.setProperty('--portal-arrow-left', arrowLeft + 'px');
+  }
+
+  function schedulePortalTooltipPosition() {
+    if (!usePortalTooltip || !portalTooltip || !portalHotspot || portalTicking) return;
+    portalTicking = true;
+    requestAnimationFrame(function() {
+      portalTicking = false;
+      updatePortalTooltipPosition();
+    });
+  }
+
+  function showTooltipForHotspot(hotspot) {
+    if (!hotspot) return;
+    activeHotspotId = hotspot.getAttribute('id');
+
+    if (!usePortalTooltip) {
+      hotspot.style.zIndex = hotspot.classList.contains(legendActiveClass) ? '25' : '20';
+      return;
+    }
+
+    var sourceTooltip = hotspot.querySelector('[data-bds-tooltip="true"]') || hotspot.querySelector('.${classNames.tooltip}');
+    if (!sourceTooltip) return;
+
+    ensurePortalTooltip();
+    portalHotspot = hotspot;
+    portalTooltip.innerHTML = sourceTooltip.innerHTML;
+    portalTooltip.classList.add('${classNames.portalTooltipVisible}');
+    updatePortalTooltipPosition();
+  }
+
+  function hideTooltipForHotspot(hotspot, force) {
+    if (!force && hotspot && hotspot.classList.contains(activeClass)) {
+      activeHotspotId = hotspot.getAttribute('id');
+      return;
+    }
+    if (!force && hotspot && hotspot.classList.contains(legendActiveClass)) {
+      activeHotspotId = hotspot.getAttribute('id');
+      return;
+    }
+    if (!usePortalTooltip || !portalTooltip) {
+      activeHotspotId = null;
+      return;
+    }
+    if (hotspot && portalHotspot && hotspot !== portalHotspot) return;
+
+    portalTooltip.classList.remove('${classNames.portalTooltipVisible}');
+    portalHotspot = null;
+    activeHotspotId = null;
+  }
 
   function clearHotspotState() {
     hotspots.forEach(function(hotspot) {
@@ -2359,6 +5278,46 @@ ${legendHtml}
       hotspot.classList.remove(legendActiveClass);
       hotspot.style.zIndex = '10';
     });
+    activeHotspotId = null;
+    hideTooltipForHotspot(null, true);
+  }
+
+  function syncPolygonActiveState() {
+    wrapper.querySelectorAll('.bds-polygon-target').forEach(function(element) {
+      var match = element.className.match(/bds-polygon-target-([a-zA-Z0-9_\-]+)/);
+      var pid = element.getAttribute('data-polygon-id') || (match ? match[1] : null);
+      var isActive = String(activePolygonId) === String(pid);
+      element.setAttribute('data-polygon-tooltip-visible', isActive ? 'true' : 'false');
+      // For WP compatibility where data attributes may be stripped
+      if (isActive) {
+        element.classList.add('${polygonClassNames.polygonTooltipVisible}');
+      } else {
+        element.classList.remove('${polygonClassNames.polygonTooltipVisible}');
+      }
+    });
+  }
+
+  function closePolygonTooltip() {
+    activePolygonId = null;
+    syncPolygonActiveState();
+  }
+
+  function togglePolygonActive(id) {
+    activePolygonId = String(activePolygonId) === String(id) ? null : id;
+    syncPolygonActiveState();
+  }
+
+  function isCoarsePointerDevice() {
+    return !!(window.matchMedia && window.matchMedia('(hover: none), (pointer: coarse)').matches);
+  }
+
+  function shouldKeepPolygonHoverActive(event, polygonId) {
+    if (!event.relatedTarget) return false;
+    var nextTarget = event.relatedTarget.closest ? (event.relatedTarget.closest('.bds-polygon-target') || event.relatedTarget.closest('[data-polygon-id]')) : null;
+    if (!nextTarget) return false;
+    var match = nextTarget.className.match(/bds-polygon-target-([a-zA-Z0-9_\-]+)/);
+    var targetId = nextTarget.getAttribute('data-polygon-id') || (match ? match[1] : null);
+    return String(targetId) === String(polygonId);
   }
 
   function findHotspotById(targetId) {
@@ -2396,22 +5355,103 @@ ${legendHtml}
       if (!isActive) {
         hotspot.classList.add(activeClass);
         hotspot.style.zIndex = '20';
+        showTooltipForHotspot(hotspot);
       }
     });
 
     hotspot.addEventListener('mouseenter', function() {
+      showTooltipForHotspot(hotspot);
       var hoverTimer = setTimeout(function() {
         scheduleDismiss();
       }, 3000);
       hotspot.addEventListener('mouseleave', function() {
         clearTimeout(hoverTimer);
+        if (!hotspot.classList.contains(activeClass) && !hotspot.classList.contains(legendActiveClass)) {
+          hideTooltipForHotspot(hotspot, false);
+        }
       }, { once: true });
     });
   });
 
+  function attachPolygonEvents(element) {
+    if (!element) return;
+    var match = element.className.match(/bds-polygon-target-([a-zA-Z0-9_\-]+)/);
+    var polygonId = element.getAttribute('data-polygon-id') || (match ? match[1] : null);
+    if (!polygonId) return;
+
+    element.addEventListener('click', function(event) {
+      event.stopPropagation();
+      if (isCoarsePointerDevice()) {
+        togglePolygonActive(polygonId);
+        return;
+      }
+      activePolygonId = polygonId;
+      syncPolygonActiveState();
+    });
+
+    element.addEventListener('mouseenter', function() {
+      if (isCoarsePointerDevice()) return;
+      activePolygonId = polygonId;
+      syncPolygonActiveState();
+    });
+
+    element.addEventListener('mouseleave', function(event) {
+      if (isCoarsePointerDevice()) return;
+      if (shouldKeepPolygonHoverActive(event, polygonId)) return;
+      closePolygonTooltip();
+    });
+  }
+
+  polygonShapes.forEach(attachPolygonEvents);
+  polygonAnchors.forEach(attachPolygonEvents);
+
+  if (usePortalTooltip) {
+    window.addEventListener('resize', schedulePortalTooltipPosition);
+    window.addEventListener('scroll', schedulePortalTooltipPosition, true);
+  }
+
+  if (preventBackgroundClick) {
+    wrapper.addEventListener('click', function(event) {
+      var interactiveTarget = event.target.closest('.${classNames.hotspot}, .${classNames.labelToggle}, [data-bds-route="true"], [data-bds-polygon="true"], [data-bds-polygon-interactive="true"]');
+      if (interactiveTarget) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
+
+    wrapper.addEventListener('pointerdown', function(event) {
+      var clickedHotspot = event.target.closest('.${classNames.hotspot}');
+      var clickedPortalTooltip = event.target.closest('.${classNames.portalTooltip}');
+      var clickedPolygon = event.target.closest('[data-bds-polygon-interactive="true"]');
+      if (!clickedHotspot && !clickedPortalTooltip) {
+        clearHotspotState();
+      }
+      if (!clickedPolygon) {
+        closePolygonTooltip();
+      }
+      var interactiveTarget = event.target.closest('.${classNames.hotspot}, .${classNames.labelToggle}, [data-bds-route="true"], [data-bds-polygon="true"], [data-bds-polygon-interactive="true"]');
+      if (interactiveTarget) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
+  }
+
   document.addEventListener('click', function(event) {
     if (!wrapper.contains(event.target) && !(legend && legend.contains(event.target))) {
       clearHotspotState();
+      closePolygonTooltip();
+    }
+  });
+
+  document.addEventListener('pointerdown', function(event) {
+    if (!activeHotspotId && !activePolygonId) return;
+    var clickedHotspot = event.target.closest('.${classNames.hotspot}');
+    var clickedPortalTooltip = event.target.closest('.${classNames.portalTooltip}');
+    var clickedPolygon = event.target.closest('[data-bds-polygon-interactive="true"]');
+    if (!clickedHotspot && !clickedPortalTooltip) {
+      clearHotspotState();
+    }
+    if (!clickedPolygon) {
+      closePolygonTooltip();
     }
   });
 
@@ -2432,8 +5472,8 @@ ${legendHtml}
 })();
 <\/script>`;
 
-            document.getElementById('codeWp').textContent = fullCode;
-            document.getElementById('codeJson').textContent = JSON.stringify(points, null, 2);
+            document.getElementById('codeWp').textContent = shouldMinifyHtml ? minifyExportHtml(fullCode) : fullCode;
+            document.getElementById('codeJson').textContent = JSON.stringify(exportData, null, 2);
             setExportCopyButtonState(false);
             return true;
         }
@@ -2444,7 +5484,7 @@ ${legendHtml}
         }
 
         function openExportModal() {
-            if (points.length === 0) { alert('Chưa có điểm!'); return; }
+            if (points.length === 0 && routes.length === 0 && polygons.length === 0) { alert('Chưa có điểm, tuyến hoặc polygon!'); return; }
             if (!refreshExportPreview()) return;
             setExportCopyButtonState(false);
             document.getElementById('exportModal').classList.add('active');
@@ -2481,6 +5521,33 @@ ${legendHtml}
             });
         }
 
+        function createPreviewHtmlFile() {
+            const htmlCode = document.getElementById('codeWp').textContent || '';
+            if (!htmlCode.trim()) {
+                alert('Chưa có mã HTML để tạo file xem trước.');
+                return;
+            }
+
+            const mapId = ensureExportMapId();
+            const fileName = `${mapId}.html`;
+            const blob = new Blob([htmlCode], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const previewWindow = window.open(url, '_blank', 'noopener,noreferrer');
+            const link = document.createElement('a');
+
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            if (!previewWindow) {
+                alert(`Đã tạo file ${fileName}. Nếu tab xem trước không mở, trình duyệt đang chặn popup.`);
+            }
+
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
+        }
+
         function openImportModal() {
             document.getElementById('importCodeInput').value = '';
             document.getElementById('importModal').classList.add('active');
@@ -2497,24 +5564,44 @@ ${legendHtml}
                 return;
             }
 
-            if (points.length > 0) {
-                if (!confirm('Dữ liệu mới sẽ nạp đè lên các điểm hiện tại. Bạn có chắc chắn?')) return;
+            const activeMapId = ensureExportMapId();
+
+            if (points.length > 0 || routes.length > 0 || polygons.length > 0) {
+                if (!confirm('Dữ liệu mới sẽ nạp đè lên các điểm, tuyến và polygon hiện tại. Bạn có chắc chắn?')) return;
             }
 
             try {
                 const parsed = JSON.parse(text);
                 if (Array.isArray(parsed)) {
-                    applyImportedPoints(parsed);
+                    applyImportedMapData({
+                        points: parsed,
+                        routes: [],
+                        polygons: [],
+                        imageSrc: currentImageSrc,
+                        mapId: activeMapId
+                    });
+                    return;
+                }
+
+                if (parsed && typeof parsed === 'object') {
+                    applyImportedMapData({
+                        points: Array.isArray(parsed.points) ? parsed.points : [],
+                        routes: Array.isArray(parsed.routes) ? parsed.routes : [],
+                        polygons: Array.isArray(parsed.polygons) ? parsed.polygons : [],
+                        imageSrc: parsed.imageSrc || currentImageSrc,
+                        mapId: activeMapId,
+                        options: parsed.options || {}
+                    });
                     return;
                 }
             } catch (e) {
                 // Not JSON
             }
 
-            importHTMLCode(text);
+            importHTMLCode(text, activeMapId);
         }
 
-        function importHTMLCode(html) {
+        function importHTMLCode(html, activeMapId = ensureExportMapId()) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
@@ -2524,8 +5611,8 @@ ${legendHtml}
                 return;
             }
 
-            const importedMapId = wrapper.getAttribute('data-map-id');
-            if (importedMapId) setExportMapId(importedMapId);
+            const importedTooltipMode = (wrapper.getAttribute('data-bds-tooltip-mode') || '').trim();
+            const importedPreventBackgroundClick = (wrapper.getAttribute('data-bds-prevent-bg-click') || '').trim();
 
             const imgEl = wrapper.querySelector('img');
             let bgUrl = imgEl ? imgEl.getAttribute('src') : '';
@@ -2533,6 +5620,8 @@ ${legendHtml}
             if (!bgUrl) bgUrl = currentImageSrc;
 
             const newPoints = [];
+            const newRoutes = [];
+            const newPolygons = [];
             const hotspots = wrapper.querySelectorAll('[data-bds-hotspot="true"]').length
                 ? wrapper.querySelectorAll('[data-bds-hotspot="true"]')
                 : wrapper.querySelectorAll('.bds-hotspot');
@@ -2571,11 +5660,26 @@ ${legendHtml}
                 const title = titleEl ? titleEl.textContent.trim() : `Điểm ${index + 1}`;
 
                 let area = '', price = '', details = '';
+                let areaLabel = tooltipEl ? (tooltipEl.getAttribute('data-area-label') || '').trim() : '';
+                let priceLabel = tooltipEl ? (tooltipEl.getAttribute('data-price-label') || '').trim() : '';
+                let thumbnailUrl = tooltipEl ? (tooltipEl.getAttribute('data-thumbnail-url') || '').trim() : '';
                 const spans = tooltipEl ? tooltipEl.querySelectorAll('span') : [];
                 spans.forEach(span => {
                     const txt = span.textContent.trim();
-                    if (txt.startsWith('📐 Diện tích:')) area = txt.replace('📐 Diện tích:', '').trim();
-                    else if (txt.startsWith('💰 Giá:')) price = txt.replace('💰 Giá:', '').trim();
+                    if (txt.startsWith('📐')) {
+                        const areaMatch = txt.match(/^📐\s*([^:]+):\s*(.*)$/);
+                        if (areaMatch) {
+                            areaLabel = areaMatch[1].trim();
+                            area = areaMatch[2].trim();
+                        }
+                    }
+                    else if (txt.startsWith('💰')) {
+                        const priceMatch = txt.match(/^💰\s*([^:]+):\s*(.*)$/);
+                        if (priceMatch) {
+                            priceLabel = priceMatch[1].trim();
+                            price = priceMatch[2].trim();
+                        }
+                    }
                     else if (txt.startsWith('ℹ️')) details = txt.replace('ℹ️', '').trim();
                 });
 
@@ -2585,8 +5689,76 @@ ${legendHtml}
                 if (hintLabelEl) hintLabel = hintLabelEl.textContent.trim();
 
                 newPoints.push({
-                    id: idNum, top, left, color: colorStr, icon, effect, title, area, price, details, hintLabel, sizeDesktop, sizeMobile
+                    id: idNum, top, left, color: colorStr, icon, effect, title, area, price, areaLabel: areaLabel || 'Diện tích', priceLabel: priceLabel || 'Giá', thumbnailUrl, details, hintLabel, sizeDesktop, sizeMobile
                 });
+            });
+
+            const routeElements = wrapper.querySelectorAll('[data-bds-route="true"]');
+            routeElements.forEach((routeEl, index) => {
+                const payloadRaw = routeEl.getAttribute('data-route-payload');
+                if (!payloadRaw) return;
+
+                try {
+                    const payload = JSON.parse(payloadRaw);
+                    newRoutes.push({
+                        id: payload.id || Date.now() + index,
+                        title: payload.title || `Tuyến ${index + 1}`,
+                        label: payload.label || '',
+                        color: payload.color || defaultRouteColor,
+                        width: parseFloat(payload.width) || 0.85,
+                        glowWidth: parseFloat(payload.glowWidth) || 2.7,
+                        animation: payload.animation || 'brand-flow',
+                        dashLength: parseFloat(payload.dashLength) || 3,
+                        dashGap: parseFloat(payload.dashGap) || 2.8,
+                        flowSpeed: parseFloat(payload.flowSpeed) || 2.8,
+                        points: Array.isArray(payload.points) ? payload.points.map(point => ({
+                            x: roundPercent(point.x),
+                            y: roundPercent(point.y)
+                        })) : []
+                    });
+                } catch (error) {
+                    console.warn('Không đọc được route payload', error);
+                }
+            });
+
+            const polygonElements = wrapper.querySelectorAll('[data-bds-polygon="true"]');
+            polygonElements.forEach((polygonEl, index) => {
+                const payloadRaw = polygonEl.getAttribute('data-polygon-payload');
+                if (!payloadRaw) return;
+
+                try {
+                    const payload = JSON.parse(payloadRaw);
+                    newPolygons.push({
+                        id: payload.id || Date.now() + index,
+                        title: payload.title || `Polygon ${index + 1}`,
+                        icon: payload.icon || '⬠',
+                        hintLabel: payload.hintLabel || '',
+                        showIcon: payload.showIcon !== false,
+                        iconEffect: payload.iconEffect || 'none',
+                        iconColor: payload.iconColor || payload.fillColor || '#4f46e5',
+                        iconSizeDesktop: parseInt(payload.iconSizeDesktop, 10) || 40,
+                        iconSizeMobile: parseInt(payload.iconSizeMobile, 10) || 32,
+                        tooltipTitle: payload.tooltipTitle || '',
+                        tooltipBody: payload.tooltipBody || '',
+                        areaLabel: payload.areaLabel || 'Diện tích',
+                        area: payload.area || '',
+                        priceLabel: payload.priceLabel || 'Giá',
+                        price: payload.price || '',
+                        thumbnailUrl: payload.thumbnailUrl || '',
+                        details: payload.details || '',
+                        fillColor: payload.fillColor || '#4f46e5',
+                        fillOpacity: clamp(parseFloat(payload.fillOpacity), 0, 1),
+                        strokeColor: payload.strokeColor || payload.fillColor || '#4f46e5',
+                        strokeWidth: Math.max(0.1, parseFloat(payload.strokeWidth) || 0.6),
+                        displayMode: payload.displayMode || 'outline-icon',
+                        points: Array.isArray(payload.points) ? payload.points.map(point => ({
+                            x: roundPercent(point.x),
+                            y: roundPercent(point.y)
+                        })) : []
+                    });
+                } catch (error) {
+                    console.warn('Không đọc được polygon payload', error);
+                }
             });
 
             if (bgUrl && bgUrl !== currentImageSrc) {
@@ -2597,33 +5769,136 @@ ${legendHtml}
                     document.querySelector('.url-section').style.display = 'none';
                     document.getElementById('mapWrapper').classList.add('active');
                     document.getElementById('mapDimensions').textContent = `${img.naturalWidth}x${img.naturalHeight}`;
-                    applyImportedPoints(newPoints);
+                    applyImportedMapData({
+                        points: newPoints,
+                        routes: newRoutes,
+                        polygons: newPolygons,
+                        imageSrc: bgUrl,
+                        mapId: activeMapId,
+                        options: {
+                            usePortalTooltip: importedTooltipMode === 'portal',
+                            preventBackgroundClick: importedPreventBackgroundClick !== 'false'
+                        }
+                    });
                 };
                 img.onerror = () => {
-                    alert('Lỗi tải ảnh từ URL trong mã HTML! Đã khôi phục điểm trên ảnh hiện tại.');
-                    applyImportedPoints(newPoints);
+                    alert('Lỗi tải ảnh từ URL trong mã HTML! Đã khôi phục dữ liệu trên ảnh hiện tại.');
+                    applyImportedMapData({
+                        points: newPoints,
+                        routes: newRoutes,
+                        polygons: newPolygons,
+                        imageSrc: currentImageSrc,
+                        mapId: activeMapId,
+                        options: {
+                            usePortalTooltip: importedTooltipMode === 'portal',
+                            preventBackgroundClick: importedPreventBackgroundClick !== 'false'
+                        }
+                    });
                 };
                 img.src = bgUrl;
             } else {
-                applyImportedPoints(newPoints);
+                applyImportedMapData({
+                    points: newPoints,
+                    routes: newRoutes,
+                    polygons: newPolygons,
+                    imageSrc: bgUrl,
+                    mapId: activeMapId,
+                    options: {
+                        usePortalTooltip: importedTooltipMode === 'portal',
+                        preventBackgroundClick: importedPreventBackgroundClick !== 'false'
+                    }
+                });
             }
         }
 
-        function applyImportedPoints(newPoints) {
+        function applyImportedMapData(payload) {
+            const newPoints = Array.isArray(payload.points) ? payload.points : [];
+            const newRoutes = Array.isArray(payload.routes) ? payload.routes.map((route, index) => ({
+                id: route.id || Date.now() + index,
+                title: route.title || `Tuyến ${index + 1}`,
+                label: route.label || '',
+                color: route.color || defaultRouteColor,
+                width: parseFloat(route.width) || 0.85,
+                glowWidth: parseFloat(route.glowWidth) || 2.7,
+                animation: route.animation || 'brand-flow',
+                dashLength: parseFloat(route.dashLength) || 3,
+                dashGap: parseFloat(route.dashGap) || 2.8,
+                flowSpeed: parseFloat(route.flowSpeed) || 2.8,
+                points: Array.isArray(route.points) ? route.points.map(point => ({
+                    x: roundPercent(point.x),
+                    y: roundPercent(point.y)
+                })) : []
+            })) : [];
+            const newPolygons = Array.isArray(payload.polygons) ? payload.polygons.map((polygon, index) => ({
+                        id: polygon.id || Date.now() + index,
+                        title: polygon.title || `Polygon ${index + 1}`,
+                        icon: polygon.icon || '⬠',
+                        hintLabel: polygon.hintLabel || '',
+                        showIcon: polygon.showIcon !== false,
+                        iconEffect: polygon.iconEffect || 'none',
+                        iconColor: polygon.iconColor || polygon.fillColor || '#4f46e5',
+                        iconSizeDesktop: parseInt(polygon.iconSizeDesktop, 10) || 40,
+                        iconSizeMobile: parseInt(polygon.iconSizeMobile, 10) || 32,
+                        tooltipTitle: polygon.tooltipTitle || '',
+                        tooltipBody: polygon.tooltipBody || '',
+                areaLabel: polygon.areaLabel || 'Diện tích',
+                area: polygon.area || '',
+                priceLabel: polygon.priceLabel || 'Giá',
+                price: polygon.price || '',
+                thumbnailUrl: polygon.thumbnailUrl || '',
+                details: polygon.details || '',
+                fillColor: polygon.fillColor || '#4f46e5',
+                fillOpacity: clamp(parseFloat(polygon.fillOpacity), 0, 1),
+                strokeColor: polygon.strokeColor || polygon.fillColor || '#4f46e5',
+                strokeWidth: Math.max(0.1, parseFloat(polygon.strokeWidth) || 0.6),
+                displayMode: polygon.displayMode || 'outline-icon',
+                points: Array.isArray(polygon.points) ? polygon.points.map(point => ({
+                    x: roundPercent(point.x),
+                    y: roundPercent(point.y)
+                })) : []
+            })) : [];
             document.querySelectorAll('.bds-hotspot').forEach(m => m.remove());
             points = newPoints;
+            routes = newRoutes;
+            polygons = newPolygons;
+            currentPolygonDraft = [];
             points.forEach(p => renderMarker(p, false));
+            renderRoutes();
             updatePointsList();
+            updateRoutesList();
+            updatePolygonsList();
 
             selectedPoint = null;
-            document.getElementById('pointForm').style.display = 'none';
-            document.getElementById('emptyState').style.display = 'block';
+            selectedRoute = null;
+            selectedPolygon = null;
+            showInspector(null);
+            ensureExportMapId();
+            if (payload.options && Object.prototype.hasOwnProperty.call(payload.options, 'usePortalTooltip')) {
+                setPortalTooltipEnabled(payload.options.usePortalTooltip);
+            }
+            if (payload.options && Object.prototype.hasOwnProperty.call(payload.options, 'preventBackgroundClick')) {
+                setPreventBackgroundClickEnabled(payload.options.preventBackgroundClick);
+            }
 
             closeImportModal();
-            alert(`Đã nhập thành công ${points.length} điểm!`);
+            alert(`Đã nhập thành công ${points.length} điểm, ${routes.length} tuyến và ${polygons.length} polygon!`);
+            refreshExportPreviewIfOpen();
+        }
+
+        function applyImportedPoints(newPoints) {
+            applyImportedMapData({
+                points: newPoints,
+                routes: [],
+                imageSrc: currentImageSrc,
+                mapId: exportMapId
+            });
         }
 
         document.getElementById('includeLegend').addEventListener('change', refreshExportPreviewIfOpen);
+        document.getElementById('includeLabelToggle').addEventListener('change', refreshExportPreviewIfOpen);
+        document.getElementById('minifyHtmlExport').addEventListener('change', refreshExportPreviewIfOpen);
+        document.getElementById('usePortalTooltip').addEventListener('change', refreshExportPreviewIfOpen);
+        document.getElementById('preventBackgroundClick').addEventListener('change', refreshExportPreviewIfOpen);
         document.getElementById('mapExportId').addEventListener('input', function () {
             setExportMapId(this.value);
             refreshExportPreviewIfOpen();
@@ -2637,9 +5912,27 @@ ${legendHtml}
             refreshExportPreviewIfOpen();
         });
 
+        const mapContainerElement = document.getElementById('mapContainer');
+        mapContainerElement.addEventListener('pointerdown', startFreehandRouteDraw);
+        mapContainerElement.addEventListener('pointermove', continueFreehandRouteDraw);
+        mapContainerElement.addEventListener('pointerup', stopFreehandRouteDraw);
+        mapContainerElement.addEventListener('pointerleave', stopFreehandRouteDraw);
+        mapContainerElement.addEventListener('pointercancel', stopFreehandRouteDraw);
+
         setExportMapId(createAutoMapId());
+        setPortalTooltipEnabled(true);
+        setPreventBackgroundClickEnabled(true);
         initColorGrid();
+        syncColorInputs(colorPalette[0]);
+        syncPolygonColorInputGroup('inputPolygonIconColor', 'inputPolygonIconColorCode', '#4F46E5');
+        syncPolygonColorInputGroup('inputPolygonFillColor', 'inputPolygonFillColorCode', '#4F46E5');
+        syncPolygonColorInputGroup('inputPolygonStrokeColor', 'inputPolygonStrokeColorCode', '#4F46E5');
         selectColor(colorPalette[0], document.querySelector('.color-swatch'));
+        updateModeButtons();
+        updateRoutesList();
+        updatePolygonsList();
+        renderRoutes();
+        updateEmptyState();
     </script>
 
 </body>
